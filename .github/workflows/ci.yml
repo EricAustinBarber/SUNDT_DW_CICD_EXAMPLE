@@ -11,7 +11,9 @@ jobs:
   ci_dev:
     if: ${{ github.ref_name == 'dev' || (github.event_name == 'pull_request' && github.base_ref == 'dev') }}
     name: ci-dev
-    uses: sundt/SUNDT_DW_CICD_PIPELINE/.github/workflows/reusable-databricks.yml@main
+    # Adjusted for demo purposes
+    # uses: sundt/SUNDT_DW_CICD_PIPELINE/.github/workflows/reusable-databricks.yml@main
+    uses: EricAustinBarber/SUNDT_DW_CICD_PIPELINE/.github/workflows/reusable-databricks.yml@main
     with:
       mode: ci-dev
       bundle_path: databricks
@@ -22,7 +24,9 @@ jobs:
   ci_test:
     if: ${{ github.ref_name == 'test' || (github.event_name == 'pull_request' && github.base_ref == 'test') }}
     name: ci-test
-    uses: sundt/SUNDT_DW_CICD_PIPELINE/.github/workflows/reusable-databricks.yml@main
+    # Adjusted for demo purposes
+    # uses: sundt/SUNDT_DW_CICD_PIPELINE/.github/workflows/reusable-databricks.yml@main
+    uses: EricAustinBarber/SUNDT_DW_CICD_PIPELINE/.github/workflows/reusable-databricks.yml@main
     with:
       mode: ci-test
       bundle_path: databricks
@@ -34,7 +38,9 @@ jobs:
   cd_prod:
     if: ${{ github.event_name == 'push' && github.ref_name == 'prod' }}
     name: cd-prod
-    uses: sundt/SUNDT_DW_CICD_PIPELINE/.github/workflows/reusable-databricks.yml@main
+    # Adjusted for demo purposes
+    # uses: sundt/SUNDT_DW_CICD_PIPELINE/.github/workflows/reusable-databricks.yml@main
+    uses: EricAustinBarber/SUNDT_DW_CICD_PIPELINE/.github/workflows/reusable-databricks.yml@main
     with:
       mode: cd-prod
       bundle_path: databricks
