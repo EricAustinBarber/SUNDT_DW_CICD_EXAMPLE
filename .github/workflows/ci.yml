@@ -1,4 +1,4 @@
-name: CI / CD (Databricks)
+name: CICD-Databricks
 
 on:
   pull_request:
