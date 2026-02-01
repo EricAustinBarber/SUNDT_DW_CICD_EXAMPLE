@@ -20,6 +20,9 @@ jobs:
       target: dev
       environment_name: DataBricks-Dev
       run_asset_validation: false
+    secrets:
+      DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+      DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
 
   ci_test:
     if: ${{ github.ref_name == 'test' || (github.event_name == 'pull_request' && github.base_ref == 'test') }}
@@ -34,6 +37,10 @@ jobs:
       environment_name: DataBricks-Test
       run_asset_validation: true
       asset_validation_notebook_path: /Repos/ci/asset_validation_driver
+    secrets:
+      DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+      DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+      DATABRICKS_VALIDATION_CLUSTER_ID: ${{ secrets.DATABRICKS_VALIDATION_CLUSTER_ID }}
 
   cd_prod:
     if: ${{ github.event_name == 'push' && github.ref_name == 'prod' }}
@@ -48,3 +55,6 @@ jobs:
       environment_name: DataBricks-Prod
       run_asset_validation: false
       promote_artifact_only: false
+    secrets:
+      DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+      DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
