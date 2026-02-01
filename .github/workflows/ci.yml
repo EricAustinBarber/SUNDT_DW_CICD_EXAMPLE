@@ -11,18 +11,25 @@ jobs:
   ci_dev:
     if: ${{ github.ref_name == 'dev' || (github.event_name == 'pull_request' && github.base_ref == 'dev') }}
     name: ci-dev
-    uses: sundt/SUNDT_DW_CICD_PIPELINE/.github/workflows/reusable-databricks.yml@main
+    # Adjusted for demo purposes
+    # uses: sundt/SUNDT_DW_CICD_PIPELINE/.github/workflows/reusable-databricks.yml@main
+    uses: EricAustinBarber/SUNDT_DW_CICD_PIPELINE/.github/workflows/reusable-databricks.yml@main
     with:
       mode: ci-dev
       bundle_path: databricks
       target: dev
       environment_name: DataBricks-Dev
       run_asset_validation: false
+    secrets:
+      DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+      DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
 
   ci_test:
     if: ${{ github.ref_name == 'test' || (github.event_name == 'pull_request' && github.base_ref == 'test') }}
     name: ci-test
-    uses: sundt/SUNDT_DW_CICD_PIPELINE/.github/workflows/reusable-databricks.yml@main
+    # Adjusted for demo purposes
+    # uses: sundt/SUNDT_DW_CICD_PIPELINE/.github/workflows/reusable-databricks.yml@main
+    uses: EricAustinBarber/SUNDT_DW_CICD_PIPELINE/.github/workflows/reusable-databricks.yml@main
     with:
       mode: ci-test
       bundle_path: databricks
@@ -30,11 +37,17 @@ jobs:
       environment_name: DataBricks-Test
       run_asset_validation: true
       asset_validation_notebook_path: /Repos/ci/asset_validation_driver
+    secrets:
+      DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+      DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+      DATABRICKS_VALIDATION_CLUSTER_ID: ${{ secrets.DATABRICKS_VALIDATION_CLUSTER_ID }}
 
   cd_prod:
     if: ${{ github.event_name == 'push' && github.ref_name == 'prod' }}
     name: cd-prod
-    uses: sundt/SUNDT_DW_CICD_PIPELINE/.github/workflows/reusable-databricks.yml@main
+    # Adjusted for demo purposes
+    # uses: sundt/SUNDT_DW_CICD_PIPELINE/.github/workflows/reusable-databricks.yml@main
+    uses: EricAustinBarber/SUNDT_DW_CICD_PIPELINE/.github/workflows/reusable-databricks.yml@main
     with:
       mode: cd-prod
       bundle_path: databricks
@@ -42,3 +55,6 @@ jobs:
       environment_name: DataBricks-Prod
       run_asset_validation: false
       promote_artifact_only: false
+    secrets:
+      DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+      DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
