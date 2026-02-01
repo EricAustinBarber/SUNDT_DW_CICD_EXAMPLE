@@ -5,13 +5,13 @@ targets:
   dev:
     default: true
     workspace:
-      root_path: /Repos/sundt/example/dev/${bundle.name}
+      root_path: /Workspace/Shared/DataFlow/example/dev/${bundle.name}
   test:
     workspace:
-      root_path: /Repos/sundt/example/test/${bundle.name}
+      root_path: /Workspace/Shared/DataFlow/example/test/${bundle.name}
   prod:
     workspace:
-      root_path: /Repos/sundt/example/prod/${bundle.name}
+      root_path: /Workspace/Shared/DataFlow/example/prod/${bundle.name}
 
 resources:
   jobs:
