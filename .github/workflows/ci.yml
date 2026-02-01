@@ -1,0 +1,44 @@
+name: CI / CD (Databricks)
+
+on:
+  pull_request:
+    branches: [dev, test, prod]
+  push:
+    branches: [dev, test, prod]
+  workflow_dispatch:
+
+jobs:
+  ci_dev:
+    if: ${{ github.ref_name == 'dev' || (github.event_name == 'pull_request' && github.base_ref == 'dev') }}
+    name: ci-dev
+    uses: sundt/SUNDT_DW_CICD_PIPELINE/.github/workflows/reusable-databricks.yml@main
+    with:
+      mode: ci-dev
+      bundle_path: databricks
+      target: dev
+      environment_name: DataBricks-Dev
+      run_asset_validation: false
+
+  ci_test:
+    if: ${{ github.ref_name == 'test' || (github.event_name == 'pull_request' && github.base_ref == 'test') }}
+    name: ci-test
+    uses: sundt/SUNDT_DW_CICD_PIPELINE/.github/workflows/reusable-databricks.yml@main
+    with:
+      mode: ci-test
+      bundle_path: databricks
+      target: test
+      environment_name: DataBricks-Test
+      run_asset_validation: true
+      asset_validation_notebook_path: /Repos/ci/asset_validation_driver
+
+  cd_prod:
+    if: ${{ github.event_name == 'push' && github.ref_name == 'prod' }}
+    name: cd-prod
+    uses: sundt/SUNDT_DW_CICD_PIPELINE/.github/workflows/reusable-databricks.yml@main
+    with:
+      mode: cd-prod
+      bundle_path: databricks
+      target: prod
+      environment_name: DataBricks-Prod
+      run_asset_validation: false
+      promote_artifact_only: false

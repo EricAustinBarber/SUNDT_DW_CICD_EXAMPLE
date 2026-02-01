@@ -1,0 +1,23 @@
+bundle:
+  name: sundt_example_bundle
+
+targets:
+  dev:
+    default: true
+    workspace:
+      root_path: /Repos/sundt/example/dev/${bundle.name}
+  test:
+    workspace:
+      root_path: /Repos/sundt/example/test/${bundle.name}
+  prod:
+    workspace:
+      root_path: /Repos/sundt/example/prod/${bundle.name}
+
+resources:
+  jobs:
+    sample_job:
+      name: sample_job_${bundle.target}
+      tasks:
+        - task_key: hello_task
+          notebook_task:
+            notebook_path: ../resources/notebooks/hello_world
