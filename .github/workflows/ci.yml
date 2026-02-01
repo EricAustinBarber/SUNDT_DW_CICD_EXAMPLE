@@ -25,6 +25,11 @@ jobs:
       target: dev
       environment_name: DataBricks-Dev
       run_asset_validation: false
+      run_post_deployment_tests: true
+      post_deploy_summary_output: both
+      run_post_deploy_smoke: true
+      smoke_mode: notebook
+      smoke_notebook_path: /Repos/ci/smoke_tests/notebook_smoke_test
     secrets:
       DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
       DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
