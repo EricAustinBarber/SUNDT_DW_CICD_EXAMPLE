@@ -20,4 +20,4 @@ resources:
       tasks:
         - task_key: hello_task
           notebook_task:
-            notebook_path: ../resources/notebooks/hello_world
+            notebook_path: resources/notebooks/hello_world
