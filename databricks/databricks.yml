@@ -1,6 +1,10 @@
 bundle:
   name: sundt_example_bundle
 
+sync:
+  include:
+    - resources/**
+
 targets:
   dev:
     default: true
@@ -20,4 +24,5 @@ resources:
       tasks:
         - task_key: hello_task
           notebook_task:
-            notebook_path: resources/notebooks/hello_world.py
+            notebook_path: ${workspace.root_path}/files/resources/notebooks/hello_world
+
