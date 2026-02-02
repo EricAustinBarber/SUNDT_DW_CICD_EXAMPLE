@@ -30,10 +30,11 @@ jobs:
 
       # Dev: validate + deploy only, no post-deploy tests
       run_asset_validation: false
-      run_post_deployment_tests: false
-      run_post_deploy_smoke: false
-
-      promote_artifact_only: false
+      run_post_deployment_tests: true
+      post_deploy_summary_output: both
+      run_post_deploy_smoke: true
+      smoke_mode: notebook
+      smoke_notebook_path: /Repos/ci/smoke_tests/notebook_smoke_test
     secrets:
       DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
       DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
