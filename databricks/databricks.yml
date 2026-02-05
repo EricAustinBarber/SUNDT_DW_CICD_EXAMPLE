@@ -1,3 +1,4 @@
+# databricks.yml
 bundle:
   name: sundt_example_bundle
 
@@ -29,3 +30,4 @@ resources:
 variables:
   validation_cluster_id:
     description: "All-purpose cluster ID for CI smoke and validation jobs"
+    default: ""
