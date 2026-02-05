@@ -9,14 +9,17 @@ on:
 
 permissions:
   contents: read
-  # Removed for deom purposes
+  # Removed for demo purposes
   # id-token: write
 
 jobs:
   ci_dev:
+    # Run when:
+    # - pushing directly to dev
+    # - creating/updating a PR with base branch = dev
     if: ${{ github.ref_name == 'dev' || (github.event_name == 'pull_request' && github.base_ref == 'dev') }}
     name: ci-dev
-    # Adjusted for demo purposes
+    # TODO: Point to organization (sundt) repo instead of user (EricAustinBarber) repo
     # uses: sundt/SUNDT_DW_CICD_PIPELINE/.github/workflows/reusable-databricks.yml@main
     uses: EricAustinBarber/SUNDT_DW_CICD_PIPELINE/.github/workflows/reusable-databricks.yml@main
     with:
@@ -24,6 +27,8 @@ jobs:
       bundle_path: databricks
       target: dev
       environment_name: DataBricks-Dev
+
+      # Dev: validate + deploy only, no post-deploy tests
       run_asset_validation: false
       run_post_deployment_tests: true
       post_deploy_summary_output: both
@@ -33,11 +38,15 @@ jobs:
     secrets:
       DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
       DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+      DATABRICKS_VALIDATION_CLUSTER_ID: ${{ secrets.DATABRICKS_VALIDATION_CLUSTER_ID }}
 
   ci_test:
+    # Run when:
+    # - pushing directly to test
+    # - creating/updating a PR with base branch = test
     if: ${{ github.ref_name == 'test' || (github.event_name == 'pull_request' && github.base_ref == 'test') }}
     name: ci-test
-    # Adjusted for demo purposes
+    # TODO: Point to organization (sundt) repo instead of user (EricAustinBarber) repo
     # uses: sundt/SUNDT_DW_CICD_PIPELINE/.github/workflows/reusable-databricks.yml@main
     uses: EricAustinBarber/SUNDT_DW_CICD_PIPELINE/.github/workflows/reusable-databricks.yml@main
     with:
@@ -45,17 +54,31 @@ jobs:
       bundle_path: databricks
       target: test
       environment_name: DataBricks-Test
+
+      # Test: validate + deploy + post-deploy verification + smoke + metadata-driven asset validation
+      run_post_deployment_tests: true
+      post_deploy_summary_output: both
+
+      # Smoke should be part of the bundle (recommended) and invoked via bundle run:
+      run_post_deploy_smoke: true
+      smoke_mode: bundle-run
+      smoke_job_key: smoke
+
       run_asset_validation: true
+      # NOTE: This should eventually move out of /Repos and into the bundle as well.
       asset_validation_notebook_path: /Repos/ci/asset_validation_driver
+
+      promote_artifact_only: false
     secrets:
       DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
       DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
       DATABRICKS_VALIDATION_CLUSTER_ID: ${{ secrets.DATABRICKS_VALIDATION_CLUSTER_ID }}
 
   cd_prod:
+    # Only run on direct pushes to prod (no PRs). This makes prod a "merge target" from test.
     if: ${{ github.event_name == 'push' && github.ref_name == 'prod' }}
     name: cd-prod
-    # Adjusted for demo purposes
+    # TODO: Point to organization (sundt) repo instead of user (EricAustinBarber) repo
     # uses: sundt/SUNDT_DW_CICD_PIPELINE/.github/workflows/reusable-databricks.yml@main
     uses: EricAustinBarber/SUNDT_DW_CICD_PIPELINE/.github/workflows/reusable-databricks.yml@main
     with:
@@ -63,8 +86,21 @@ jobs:
       bundle_path: databricks
       target: prod
       environment_name: DataBricks-Prod
+
+      # Prod: deploy + post-deploy verification + smoke
       run_asset_validation: false
+      run_post_deployment_tests: true
+      post_deploy_summary_output: both
+
+      run_post_deploy_smoke: true
+      smoke_mode: bundle-run
+      smoke_job_key: smoke
+
+      # For now, let prod also build+deploy for demo purposes.
+      # Later, when you have a proper release promotion, set this to true and deploy only
+      # previously-built artifacts.
       promote_artifact_only: false
     secrets:
       DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
       DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+      DATABRICKS_VALIDATION_CLUSTER_ID: ${{ secrets.DATABRICKS_VALIDATION_CLUSTER_ID }}
