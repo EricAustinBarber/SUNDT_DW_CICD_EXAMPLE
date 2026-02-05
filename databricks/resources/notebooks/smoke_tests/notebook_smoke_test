@@ -1,7 +1,0 @@
-from pyspark.sql import SparkSession
-
-spark = SparkSession.builder.getOrCreate()
-
-spark.sql("SELECT 1").show()
-
-print("Smoke test passed")

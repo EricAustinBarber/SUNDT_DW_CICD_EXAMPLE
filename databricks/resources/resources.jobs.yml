@@ -1,4 +1,4 @@
-# databricks/resources/jobs.yml
+# databricks/resources.jobs.yml
 # Smoke job definition for CI/CD validation (invoked via `databricks bundle run smoke --target <env>`)
 
 resources:
