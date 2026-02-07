@@ -1,0 +1,19 @@
+# databricks/resources.jobs.yml
+# Smoke job definition for CI/CD validation (invoked via `databricks bundle run smoke --target <env>`)
+
+resources:
+  jobs:
+    smoke:
+      name: smoke-${bundle.target}
+      tags:
+        purpose: ci-smoke
+        environment: ${bundle.target}
+      tasks:
+        - task_key: smoke_notebook
+          description: Lightweight smoke test to validate compute-plane execution
+          existing_cluster_id: ${var.validation_cluster_id}
+          notebook_task:
+            # Notebook is deployed with the bundle under the workspace root.
+            notebook_path: ${workspace.root_path}/resources/notebooks/smoke_tests/notebook_smoke_test
+            base_parameters:
+              env: ${bundle.target}
