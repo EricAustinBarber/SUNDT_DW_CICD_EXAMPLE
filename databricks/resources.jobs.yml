@@ -23,7 +23,7 @@ resources:
         - task_key: maturity_collect
           existing_cluster_id: ${var.validation_cluster_id}
           notebook_task:
-            notebook_path: ${workspace.root_path}/files/resources/notebooks/maturity/maturity_collector_notebook.py
+            notebook_path: ${workspace.root_path}/files/resources/notebooks/maturity/maturity_collector_notebook
             base_parameters:
               env: "{{job.parameters.env}}"
               run_id: "{{job.parameters.run_id}}"
@@ -48,7 +48,7 @@ resources:
         - task_key: maturity_ci_check
           existing_cluster_id: ${var.validation_cluster_id}
           notebook_task:
-            notebook_path: ${workspace.root_path}/files/resources/notebooks/maturity/maturity_ci_check_notebook.py
+            notebook_path: ${workspace.root_path}/files/resources/notebooks/maturity/maturity_ci_check_notebook
             base_parameters:
               env: "{{job.parameters.env}}"
               enforcement_mode: "{{job.parameters.enforcement_mode}}"
