@@ -1,3 +1,4 @@
+# ci.yml
 name: CICD-Databricks
 
 on:
@@ -28,6 +29,7 @@ jobs:
       target: dev
       environment_name: DataBricks-Dev
 
+      # Dev: validate + deploy only, no post-deploy tests
       run_asset_validation: false
       run_post_deployment_tests: true
       post_deploy_summary_output: both
@@ -41,8 +43,13 @@ jobs:
       DATABRICKS_SQL_WAREHOUSE_ID: ${{ secrets.DATABRICKS_SQL_WAREHOUSE_ID }}
 
   ci_test:
+    # Run when:
+    # - pushing directly to test
+    # - creating/updating a PR with base branch = test
     if: ${{ github.ref_name == 'test' || (github.event_name == 'pull_request' && github.base_ref == 'test') }}
     name: ci-test
+    # TODO: Point to organization (sundt) repo instead of user (EricAustinBarber) repo
+    # uses: sundt/SUNDT_DW_CICD_PIPELINE/.github/workflows/reusable-databricks.yml@main
     uses: EricAustinBarber/SUNDT_DW_CICD_PIPELINE/.github/workflows/reusable-databricks.yml@main
     with:
       mode: ci-test
@@ -50,9 +57,11 @@ jobs:
       target: test
       environment_name: DataBricks-Test
 
+      # Test: validate + deploy + post-deploy verification + smoke + metadata-driven asset validation
       run_post_deployment_tests: true
       post_deploy_summary_output: both
 
+      # Smoke should be part of the bundle (recommended) and invoked via bundle run:
       run_post_deploy_smoke: true
       smoke_mode: notebook
       smoke_notebook_path: /Workspace/Shared/DataFlow/example/test/sundt_example_bundle/files/resources/notebooks/smoke_tests/notebook_smoke_test
@@ -75,8 +84,11 @@ jobs:
       DATABRICKS_SQL_WAREHOUSE_ID: ${{ secrets.DATABRICKS_SQL_WAREHOUSE_ID }}
 
   cd_prod:
+    # Only run on direct pushes to prod (no PRs). This makes prod a "merge target" from test.
     if: ${{ github.event_name == 'push' && github.ref_name == 'prod' }}
     name: cd-prod
+    # TODO: Point to organization (sundt) repo instead of user (EricAustinBarber) repo
+    # uses: sundt/SUNDT_DW_CICD_PIPELINE/.github/workflows/reusable-databricks.yml@main
     uses: EricAustinBarber/SUNDT_DW_CICD_PIPELINE/.github/workflows/reusable-databricks.yml@main
     with:
       mode: cd-prod
@@ -84,21 +96,18 @@ jobs:
       target: prod
       environment_name: DataBricks-Prod
 
+      # Prod: deploy + post-deploy verification + smoke
       run_asset_validation: false
       run_post_deployment_tests: true
       post_deploy_summary_output: both
 
       run_post_deploy_smoke: true
-      smoke_mode: notebook
-      smoke_notebook_path: /Workspace/Shared/DataFlow/example/prod/sundt_example_bundle/files/resources/notebooks/smoke_tests/notebook_smoke_test
+      smoke_mode: bundle-run
+      smoke_job_key: smoke
 
-      # Prod: deploy + metrics tracking only (no gate check)
-      run_maturity_collect: true
-      run_maturity_ci_check: false
-      maturity_enforcement_mode: off
-      maturity_override: none
-      bundle_name: sundt_example_bundle
-
+      # For now, let prod also build+deploy for demo purposes.
+      # Later, when you have a proper release promotion, set this to true and deploy only
+      # previously-built artifacts.
       promote_artifact_only: false
     secrets:
       DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
