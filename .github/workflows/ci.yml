@@ -64,11 +64,11 @@ jobs:
       # Smoke should be part of the bundle (recommended) and invoked via bundle run:
       run_post_deploy_smoke: true
       smoke_mode: notebook
-      smoke_notebook_path: /Workspace/Shared/DataFlow/example/dev/sundt_example_bundle/files/resources/notebooks/smoke_tests/notebook_smoke_test
+      smoke_notebook_path: /Workspace/Shared/DataFlow/example/test/sundt_example_bundle/files/resources/notebooks/smoke_tests/notebook_smoke_test
 
       run_asset_validation: true
       # NOTE: This should eventually move out of /Repos and into the bundle as well.
-      asset_validation_notebook_path: /Workspace/Shared/DataFlow/example/dev/sundt_example_bundle/files/validation_driver/notebook_validation_driver
+      asset_validation_notebook_path: /Workspace/Shared/DataFlow/example/test/sundt_example_bundle/files/validation_driver/validation_driver_notebook
 
       promote_artifact_only: false
     secrets:
