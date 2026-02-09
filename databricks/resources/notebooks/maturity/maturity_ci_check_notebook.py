@@ -10,7 +10,6 @@ override = (dbutils.widgets.get("maturity_override") or "none").strip().lower()
 
 from pyspark.sql import functions as F
 
-spark.sql("CREATE SCHEMA IF NOT EXISTS governance_maturity")
 spark.sql("""
 CREATE TABLE IF NOT EXISTS governance_maturity.maturity_config (
   env              STRING  NOT NULL,
@@ -27,6 +26,7 @@ CREATE TABLE IF NOT EXISTS governance_maturity.maturity_config (
   updated_by       STRING
 )
 USING DELTA
+TBLPROPERTIES ('delta.feature.allowColumnDefaults' = 'supported')
 """)
 
 # seed a default
