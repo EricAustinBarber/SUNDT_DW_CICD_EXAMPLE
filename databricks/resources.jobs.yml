@@ -1,0 +1,29 @@
+resources:
+  jobs:
+    maturity_collect:
+      name: maturity-collect-${bundle.target}
+      tasks:
+        - task_key: maturity_collect
+          existing_cluster_id: ${var.validation_cluster_id}
+          notebook_task:
+            notebook_path: ${workspace.root_path}/files/resources/notebooks/maturity/maturity_collector_notebook.py
+            base_parameters:
+              env: ${bundle.target}
+              run_id: ${bundle.git.commit}
+              commit_sha: ${bundle.git.commit}
+              repo: ""
+              git_ref: ""
+              workflow_run_id: ""
+              bundle_name: ${bundle.name}
+
+    maturity_ci_check:
+      name: maturity-ci-check-${bundle.target}
+      tasks:
+        - task_key: maturity_ci_check
+          existing_cluster_id: ${var.validation_cluster_id}
+          notebook_task:
+            notebook_path: ${workspace.root_path}/files/resources/notebooks/maturity/maturity_ci_check_notebook.py
+            base_parameters:
+              env: ${bundle.target}
+              enforcement_mode: ""
+              maturity_override: "none"
