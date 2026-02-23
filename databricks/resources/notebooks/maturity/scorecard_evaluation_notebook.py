@@ -18,7 +18,6 @@ import json
 from pyspark.sql import functions as F
 from pyspark.sql import Window
 
-<<<<<<< HEAD
 def normalize_path(path: str) -> str:
     if path.startswith("dbfs:/") or path.startswith("file:/"):
         return path
@@ -28,8 +27,6 @@ def normalize_path(path: str) -> str:
 
 SCORECARD_PATH = normalize_path(SCORECARD_PATH) if SCORECARD_PATH else SCORECARD_PATH
 
-=======
->>>>>>> 93ef9c1606fc1a805f7d86e7ca251eac02a57dac
 spark.sql("CREATE SCHEMA IF NOT EXISTS governance_maturity")
 
 spark.sql("""
