@@ -17,3 +17,59 @@ resources:
             notebook_path: ${workspace.root_path}/files/resources/notebooks/smoke_tests/notebook_smoke_test
             base_parameters:
               env: ${bundle.target}
+
+    maturity_collect:
+      name: maturity-collect-${bundle.target}
+      tags:
+        purpose: maturity-telemetry
+        environment: ${bundle.target}
+      parameters:
+        - name: env
+          default: ${bundle.target}
+        - name: run_id
+          default: ""
+        - name: commit_sha
+          default: ${bundle.git.commit}
+        - name: repo
+          default: ""
+        - name: git_ref
+          default: ""
+        - name: workflow_run_id
+          default: ""
+        - name: bundle_name
+          default: ${bundle.name}
+      tasks:
+        - task_key: maturity_collect
+          existing_cluster_id: ${var.validation_cluster_id}
+          notebook_task:
+            notebook_path: ${workspace.root_path}/files/resources/notebooks/maturity/maturity_collector_notebook
+            base_parameters:
+              env: "{{job.parameters.env}}"
+              run_id: "{{job.parameters.run_id}}"
+              commit_sha: "{{job.parameters.commit_sha}}"
+              repo: "{{job.parameters.repo}}"
+              git_ref: "{{job.parameters.git_ref}}"
+              workflow_run_id: "{{job.parameters.workflow_run_id}}"
+              bundle_name: "{{job.parameters.bundle_name}}"
+
+    maturity_ci_check:
+      name: maturity-ci-check-${bundle.target}
+      tags:
+        purpose: maturity-gate
+        environment: ${bundle.target}
+      parameters:
+        - name: env
+          default: ${bundle.target}
+        - name: enforcement_mode
+          default: ""
+        - name: maturity_override
+          default: "none"
+      tasks:
+        - task_key: maturity_ci_check
+          existing_cluster_id: ${var.validation_cluster_id}
+          notebook_task:
+            notebook_path: ${workspace.root_path}/files/resources/notebooks/maturity/maturity_ci_check_notebook
+            base_parameters:
+              env: "{{job.parameters.env}}"
+              enforcement_mode: "{{job.parameters.enforcement_mode}}"
+              maturity_override: "{{job.parameters.maturity_override}}"
