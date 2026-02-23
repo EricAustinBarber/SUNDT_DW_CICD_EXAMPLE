@@ -5,6 +5,7 @@ bundle:
 sync:
   include:
     - resources/**
+    - validation_driver/**
 
 targets:
   dev:
