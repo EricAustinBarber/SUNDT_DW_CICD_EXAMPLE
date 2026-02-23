@@ -173,6 +173,7 @@ def load_scorecard_definition():
 
 
 definition_df = load_scorecard_definition()
+spark.sql("DROP TABLE IF EXISTS governance_maturity.scorecard_definition")
 definition_df.write.mode("overwrite").format("delta").saveAsTable("governance_maturity.scorecard_definition")
 
 
