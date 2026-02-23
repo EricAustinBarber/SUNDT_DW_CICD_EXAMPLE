@@ -41,7 +41,7 @@ jobs:
     name: ci-dev
     needs: [unit_tests]
     # TODO: move to org namespace and pin to a signed tag or immutable SHA.
-    uses: EricAustinBarber/SUNDT_DW_CICD_PIPELINE/.github/workflows/reusable-databricks.yml@b9ac305c742276a79004a53706142b52dc105705
+    uses: EricAustinBarber/SUNDT_DW_CICD_PIPELINE/.github/workflows/reusable-databricks.yml@0943d509c62fd579e39a80861e56f9a7a8014449
     with:
       mode: ci-dev
       bundle_path: databricks
@@ -69,7 +69,7 @@ jobs:
     name: ci-test
     needs: [unit_tests]
     # TODO: move to org namespace and pin to a signed tag or immutable SHA.
-    uses: EricAustinBarber/SUNDT_DW_CICD_PIPELINE/.github/workflows/reusable-databricks.yml@b9ac305c742276a79004a53706142b52dc105705
+    uses: EricAustinBarber/SUNDT_DW_CICD_PIPELINE/.github/workflows/reusable-databricks.yml@0943d509c62fd579e39a80861e56f9a7a8014449
     with:
       mode: ci-test
       bundle_path: databricks
@@ -102,7 +102,7 @@ jobs:
     name: cd-prod
     needs: [unit_tests]
     # TODO: move to org namespace and pin to a signed tag or immutable SHA.
-    uses: EricAustinBarber/SUNDT_DW_CICD_PIPELINE/.github/workflows/reusable-databricks.yml@b9ac305c742276a79004a53706142b52dc105705
+    uses: EricAustinBarber/SUNDT_DW_CICD_PIPELINE/.github/workflows/reusable-databricks.yml@0943d509c62fd579e39a80861e56f9a7a8014449
     with:
       mode: cd-prod
       bundle_path: databricks
@@ -127,3 +127,4 @@ jobs:
       DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
       DATABRICKS_VALIDATION_CLUSTER_ID: ${{ secrets.DATABRICKS_VALIDATION_CLUSTER_ID }}
       DATABRICKS_SQL_WAREHOUSE_ID: ${{ secrets.DATABRICKS_SQL_WAREHOUSE_ID }}
+
