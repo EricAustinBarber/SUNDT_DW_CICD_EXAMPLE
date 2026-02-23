@@ -14,6 +14,6 @@ resources:
           existing_cluster_id: ${var.validation_cluster_id}
           notebook_task:
             # Notebook is deployed with the bundle under the workspace root.
-            notebook_path: ${workspace.root_path}/resources/notebooks/smoke_tests/notebook_smoke_test
+            notebook_path: ${workspace.root_path}/files/resources/notebooks/smoke_tests/notebook_smoke_test
             base_parameters:
               env: ${bundle.target}
