@@ -1,7 +1,7 @@
 # Example Consuming Repo (Databricks CI/CD)
 
 This repository demonstrates how to consume the reusable GitHub workflow from:
-`SUNDT_DW_CICD_PIPELINE/.github/workflows/reusable-databricks.yml`.
+`sundt-edm-cicd-platform/.github/workflows/reusable-databricks.yml`.
 
 ## What this repo demonstrates
 - Branch triggers for `dev`, `test`, and `prod`
@@ -19,7 +19,7 @@ Create these environments in GitHub UI (`Settings -> Environments`):
 ## Notes
 - The Databricks asset validation notebook path used in the workflow must exist in your workspace.
 - This repo intentionally avoids storing secret values.
-- The reusable workflow is pinned to an immutable commit SHA; update it whenever `SUNDT_DW_CICD_PIPELINE` is intentionally upgraded.
+- The reusable workflow is pinned to an immutable commit SHA; update it whenever `sundt-edm-cicd-platform` is intentionally upgraded.
 - Helper script for pin updates: `scripts/update-pipeline-workflow-pin.ps1 -PipelineSha <new_sha>`.
 - Branch governance setup is documented in `docs/branch-protection-checklist.md`.
 - Dev/test workflow execution is documented in `docs/workflow-validation-runbook.md`.

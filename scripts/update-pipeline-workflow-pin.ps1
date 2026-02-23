@@ -9,7 +9,7 @@ if (!(Test-Path $workflowPath)) {
 }
 
 $content = Get-Content -Raw $workflowPath
-$updated = $content -replace "EricAustinBarber/SUNDT_DW_CICD_PIPELINE/\.github/workflows/reusable-databricks\.yml@[a-f0-9]{40}", "EricAustinBarber/SUNDT_DW_CICD_PIPELINE/.github/workflows/reusable-databricks.yml@$PipelineSha"
+$updated = $content -replace "EricAustinBarber/(SUNDT_DW_CICD_PIPELINE|sundt-edm-cicd-platform)/\.github/workflows/reusable-databricks\.yml@[a-f0-9]{40}", "EricAustinBarber/sundt-edm-cicd-platform/.github/workflows/reusable-databricks.yml@$PipelineSha"
 
 if ($updated -eq $content) {
   throw "No reusable workflow references were updated. Verify workflow format."
