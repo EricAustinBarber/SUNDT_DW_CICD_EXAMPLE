@@ -1,17 +1,14 @@
+# databricks.yml
 bundle:
   name: sundt_example_bundle
 
 sync:
   include:
     - resources/**
+    - validation_driver/**
 
 include:
-  - resources.jobs.yml
-
-variables:
-  validation_cluster_id:
-    description: "All-purpose cluster ID for CI smoke and validation jobs"
-    default: ""
+  - resources/*.yml
 
 targets:
   dev:
@@ -24,3 +21,17 @@ targets:
   prod:
     workspace:
       root_path: /Workspace/Shared/DataFlow/example/prod/${bundle.name}
+
+resources:
+  jobs:
+    sample_job:
+      name: sample_job_${bundle.target}
+      tasks:
+        - task_key: hello_task
+          notebook_task:
+            notebook_path: ${workspace.root_path}/files/resources/notebooks/hello_world
+
+variables:
+  validation_cluster_id:
+    description: "All-purpose cluster ID for CI smoke and validation jobs"
+    default: ""

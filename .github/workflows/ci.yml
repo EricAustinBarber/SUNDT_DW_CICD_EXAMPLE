@@ -1,3 +1,4 @@
+# ci.yml
 name: CICD-Databricks
 
 on:
@@ -17,23 +18,50 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: cicd-databricks-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
+  unit_tests:
+    name: unit-tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest
+      - name: Run tests
+        run: pytest -q
+
   ci_dev:
-    if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/dev') || (github.event_name == 'pull_request' && github.event.pull_request.base.ref == 'dev') }}
+    # Run when:
+    # - pushing directly to dev
+    # - creating/updating a PR with base branch = dev
+    if: ${{ github.ref_name == 'dev' || (github.event_name == 'pull_request' && github.base_ref == 'dev') }}
     name: ci-dev
-    uses: EricAustinBarber/SUNDT_DW_CICD_PIPELINE/.github/workflows/reusable-databricks.yml@main
+    needs: [unit_tests]
+    # TODO: move to org namespace and pin to a signed tag or immutable SHA.
+    uses: EricAustinBarber/SUNDT_DW_CICD_PIPELINE/.github/workflows/reusable-databricks.yml@e544f66fdba2a3a254c6c314ff34299a63254b66
     with:
       mode: ci-dev
       bundle_path: databricks
       target: dev
       environment_name: DataBricks-Dev
 
+      # Dev: validate + deploy only, no post-deploy tests
       run_asset_validation: false
       run_post_deployment_tests: true
       post_deploy_summary_output: both
       run_post_deploy_smoke: true
-      smoke_mode: notebook
-      smoke_notebook_path: /Workspace/Shared/DataFlow/example/dev/sundt_example_bundle/files/resources/notebooks/smoke_tests/notebook_smoke_test
+      smoke_mode: bundle-run
+      smoke_job_key: smoke
     secrets:
       DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
       DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
@@ -41,23 +69,31 @@ jobs:
       DATABRICKS_SQL_WAREHOUSE_ID: ${{ secrets.DATABRICKS_SQL_WAREHOUSE_ID }}
 
   ci_test:
-    if: ${{ github.ref_name == 'test' || (github.event_name == 'pull_request' && github.base_ref == 'test') }}
+    # Run when:
+    # - pushing directly to test
+    # - creating/updating a PR with base branch = test
+    if: ${{ github.ref_name == 'test' || (github.event_name == 'pull_request' && (github.base_ref == 'test' || github.base_ref == 'prod')) }}
     name: ci-test
-    uses: EricAustinBarber/SUNDT_DW_CICD_PIPELINE/.github/workflows/reusable-databricks.yml@main
+    needs: [unit_tests]
+    # TODO: move to org namespace and pin to a signed tag or immutable SHA.
+    uses: EricAustinBarber/SUNDT_DW_CICD_PIPELINE/.github/workflows/reusable-databricks.yml@e544f66fdba2a3a254c6c314ff34299a63254b66
     with:
       mode: ci-test
       bundle_path: databricks
       target: test
       environment_name: DataBricks-Test
 
+      # Test: validate + deploy + post-deploy verification + smoke + metadata-driven asset validation
       run_post_deployment_tests: true
       post_deploy_summary_output: both
 
+      # Smoke should be part of the bundle (recommended) and invoked via bundle run:
       run_post_deploy_smoke: true
-      smoke_mode: notebook
-      smoke_notebook_path: /Workspace/Shared/DataFlow/example/test/sundt_example_bundle/files/resources/notebooks/smoke_tests/notebook_smoke_test
+      smoke_mode: bundle-run
+      smoke_job_key: smoke
 
       run_asset_validation: true
+      # NOTE: This should eventually move out of /Repos and into the bundle as well.
       asset_validation_notebook_path: /Workspace/Shared/DataFlow/example/test/sundt_example_bundle/files/validation_driver/validation_driver_notebook
 
       # Maturity telemetry + warn-only checks in test
@@ -75,23 +111,30 @@ jobs:
       DATABRICKS_SQL_WAREHOUSE_ID: ${{ secrets.DATABRICKS_SQL_WAREHOUSE_ID }}
 
   cd_prod:
+    # Only run on direct pushes to prod (no PRs). This makes prod a "merge target" from test.
     if: ${{ github.event_name == 'push' && github.ref_name == 'prod' }}
     name: cd-prod
-    uses: EricAustinBarber/SUNDT_DW_CICD_PIPELINE/.github/workflows/reusable-databricks.yml@main
+    needs: [unit_tests]
+    # TODO: move to org namespace and pin to a signed tag or immutable SHA.
+    uses: EricAustinBarber/SUNDT_DW_CICD_PIPELINE/.github/workflows/reusable-databricks.yml@e544f66fdba2a3a254c6c314ff34299a63254b66
     with:
       mode: cd-prod
       bundle_path: databricks
       target: prod
       environment_name: DataBricks-Prod
 
+      # Prod: deploy + post-deploy verification + smoke
       run_asset_validation: false
       run_post_deployment_tests: true
       post_deploy_summary_output: both
 
       run_post_deploy_smoke: true
-      smoke_mode: notebook
-      smoke_notebook_path: /Workspace/Shared/DataFlow/example/prod/sundt_example_bundle/files/resources/notebooks/smoke_tests/notebook_smoke_test
+      smoke_mode: bundle-run
+      smoke_job_key: smoke
 
+      # For now, let prod also build+deploy for demo purposes.
+      # Later, when you have a proper release promotion, set this to true and deploy only
+      # previously-built artifacts.
       # Prod: deploy + metrics tracking only (no gate check)
       run_maturity_collect: true
       run_maturity_ci_check: false
