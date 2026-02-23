@@ -50,7 +50,7 @@ jobs:
     name: ci-dev
     needs: [unit_tests]
     # TODO: move to org namespace and pin to a signed tag or immutable SHA.
-    uses: EricAustinBarber/sundt-edm-cicd-platform/.github/workflows/reusable-databricks.yml@e544f66fdba2a3a254c6c314ff34299a63254b66
+    uses: EricAustinBarber/sundt-edm-cicd-platform/.github/workflows/reusable-databricks.yml@main
     with:
       mode: ci-dev
       bundle_path: databricks
@@ -78,7 +78,7 @@ jobs:
     name: ci-test
     needs: [unit_tests]
     # TODO: move to org namespace and pin to a signed tag or immutable SHA.
-    uses: EricAustinBarber/sundt-edm-cicd-platform/.github/workflows/reusable-databricks.yml@e544f66fdba2a3a254c6c314ff34299a63254b66
+    uses: EricAustinBarber/sundt-edm-cicd-platform/.github/workflows/reusable-databricks.yml@main
     with:
       mode: ci-test
       bundle_path: databricks
@@ -104,6 +104,9 @@ jobs:
       maturity_enforcement_mode: warn
       maturity_override: ${{ github.event.inputs.maturity_override || 'none' }}
       bundle_name: sundt_example_bundle
+      run_maturity_scorecard_status_load: true
+      run_maturity_scorecard_eval: true
+      run_maturity_scorecard_evidence_stub: true
 
       promote_artifact_only: false
     secrets:
@@ -118,7 +121,7 @@ jobs:
     name: cd-prod
     needs: [unit_tests]
     # TODO: move to org namespace and pin to a signed tag or immutable SHA.
-    uses: EricAustinBarber/sundt-edm-cicd-platform/.github/workflows/reusable-databricks.yml@e544f66fdba2a3a254c6c314ff34299a63254b66
+    uses: EricAustinBarber/sundt-edm-cicd-platform/.github/workflows/reusable-databricks.yml@main
     with:
       mode: cd-prod
       bundle_path: databricks
