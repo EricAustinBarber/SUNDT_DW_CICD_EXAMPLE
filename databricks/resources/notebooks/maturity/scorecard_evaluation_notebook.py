@@ -260,15 +260,25 @@ if unknown_count > 0:
 
 overall_status = "Not Ready" if blocked else "Ready"
 
-details = scored.select(
-    "check_id", "dimension", "check_name", "weight", "status_norm", "notes", "weighted_score"
-).toJSON().collect()
-
-details_json = json.dumps({
-    "checks": [json.loads(row) for row in details],
-    "scorecard_source": SCORECARD_SOURCE,
-    "scorecard_path": SCORECARD_PATH,
-})
+details_json = scored.select(
+    F.struct(
+        F.col("check_id"),
+        F.col("dimension"),
+        F.col("check_name"),
+        F.col("weight"),
+        F.col("status_norm"),
+        F.col("notes"),
+        F.col("weighted_score"),
+    ).alias("check")
+).agg(
+    F.to_json(
+        F.struct(
+            F.collect_list("check").alias("checks"),
+            F.lit(SCORECARD_SOURCE).alias("scorecard_source"),
+            F.lit(SCORECARD_PATH).alias("scorecard_path"),
+        )
+    ).alias("details_json")
+).collect()[0]["details_json"]
 
 result_df = spark.createDataFrame([(
     now_ts, ENV, RUN_ID, COMMIT_SHA, float(total_score),
