@@ -89,7 +89,7 @@ resources:
         - name: scorecard_source
           default: "embedded"
         - name: scorecard_path
-          default: ""
+          default: file:${workspace.root_path}/files/resources/scorecard/databricks-environment-scorecard.csv
         - name: status_json
           default: ""
       tasks:
@@ -139,7 +139,7 @@ resources:
         - name: env
           default: ${bundle.target}
         - name: status_path
-          default: ${workspace.root_path}/files/resources/scorecard/scorecard-check-status.csv
+          default: file:${workspace.root_path}/files/resources/scorecard/scorecard-check-status.csv
         - name: updated_by
           default: "bundle"
       tasks:

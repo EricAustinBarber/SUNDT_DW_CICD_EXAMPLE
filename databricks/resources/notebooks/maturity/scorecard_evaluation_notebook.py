@@ -18,6 +18,15 @@ import json
 from pyspark.sql import functions as F
 from pyspark.sql import Window
 
+def normalize_path(path: str) -> str:
+    if path.startswith("dbfs:/") or path.startswith("file:/"):
+        return path
+    if path.startswith("/Workspace/"):
+        return f"file:{path}"
+    return path
+
+SCORECARD_PATH = normalize_path(SCORECARD_PATH) if SCORECARD_PATH else SCORECARD_PATH
+
 spark.sql("CREATE SCHEMA IF NOT EXISTS governance_maturity")
 
 spark.sql("""
