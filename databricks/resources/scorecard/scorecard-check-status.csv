@@ -1,0 +1,11 @@
+check_id,status,notes
+DBX-01,Pass,Baseline status from assessment
+DBX-02,Partial,Delta indicators present; table-level validation pending
+DBX-03,Partial,Merge usage present; coverage by dataset not yet measured
+DBX-04,Partial,Rule inventory per domain not yet captured
+DBX-05,Partial,Optimize/Vacuum present; compliance mapping incomplete
+DBX-06,Partial,Partition usage present; completeness by table unknown
+DBX-07,Fail,No file-size threshold policy evidence captured
+DBX-08,Partial,Patterns exist in utilities; job-level coverage pending
+DBX-09,Partial,Secure retrieval present; potential literals need triage
+DBX-10,Partial,Needs per-job mapping to logging/metrics standard
