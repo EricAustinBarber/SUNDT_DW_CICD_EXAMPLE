@@ -29,6 +29,7 @@ USING DELTA
 
 now_ts = spark.sql("SELECT current_timestamp() AS ts").collect()[0]["ts"]
 
+<<<<<<< HEAD
 def normalize_path(path: str) -> str:
     if path.startswith("dbfs:/") or path.startswith("file:/"):
         return path
@@ -38,6 +39,8 @@ def normalize_path(path: str) -> str:
 
 STATUS_PATH = normalize_path(STATUS_PATH)
 
+=======
+>>>>>>> 93ef9c1606fc1a805f7d86e7ca251eac02a57dac
 df = (spark.read.option("header", "true")
       .option("inferSchema", "false")
       .csv(STATUS_PATH)
