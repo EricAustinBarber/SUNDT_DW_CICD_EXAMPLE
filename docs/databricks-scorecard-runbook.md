@@ -29,7 +29,7 @@ This workflow is **non-blocking** and should not gate deployments until approval
    - Copy changes to `databricks/resources/scorecard/databricks-environment-scorecard.csv`.
 3. Maintain scorecard status via loader notebook:
    - Job: `maturity-scorecard-status-load-test`
-   - Source CSV: `databricks/resources/scorecard/scorecard-check-status.csv`
+   - Baseline statuses are embedded in `scorecard_status_loader_notebook.py`
 4. Run the evaluation job in Databricks (test environment): `maturity-scorecard-eval-test`
 5. Review outputs:
    - Check `governance_maturity.scorecard_results` for total score, blocked reasons, and run metadata.
@@ -45,7 +45,7 @@ This workflow is **non-blocking** and should not gate deployments until approval
 
 ## Manual Overrides
 
-Update `databricks/resources/scorecard/scorecard-check-status.csv` and rerun the loader job.
+Update the embedded baseline list in `scorecard_status_loader_notebook.py` and rerun the loader job.
 
 ## CI Integration
 
