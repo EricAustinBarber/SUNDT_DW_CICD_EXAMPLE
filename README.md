@@ -23,3 +23,4 @@ Create these environments in GitHub UI (`Settings -> Environments`):
 - Helper script for pin updates: `scripts/update-pipeline-workflow-pin.ps1 -PipelineSha <new_sha>`.
 - Branch governance setup is documented in `docs/branch-protection-checklist.md`.
 - Dev/test workflow execution is documented in `docs/workflow-validation-runbook.md`.
+- End-to-end promotion path (`dev` -> `test` -> `prod`) is documented in `docs/promotion-demo-runbook.md`.

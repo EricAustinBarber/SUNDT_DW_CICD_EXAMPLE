@@ -41,7 +41,7 @@ jobs:
     name: ci-dev
     needs: [unit_tests]
     # TODO: move to org namespace and pin to a signed tag or immutable SHA.
-    uses: EricAustinBarber/SUNDT_DW_CICD_PIPELINE/.github/workflows/reusable-databricks.yml@0943d509c62fd579e39a80861e56f9a7a8014449
+    uses: EricAustinBarber/SUNDT_DW_CICD_PIPELINE/.github/workflows/reusable-databricks.yml@e544f66fdba2a3a254c6c314ff34299a63254b66
     with:
       mode: ci-dev
       bundle_path: databricks
@@ -53,8 +53,8 @@ jobs:
       run_post_deployment_tests: true
       post_deploy_summary_output: both
       run_post_deploy_smoke: true
-      smoke_mode: notebook
-      smoke_notebook_path: /Workspace/Shared/DataFlow/example/dev/sundt_example_bundle/files/resources/notebooks/smoke_tests/notebook_smoke_test
+      smoke_mode: bundle-run
+      smoke_job_key: smoke
     secrets:
       DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
       DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
@@ -69,7 +69,7 @@ jobs:
     name: ci-test
     needs: [unit_tests]
     # TODO: move to org namespace and pin to a signed tag or immutable SHA.
-    uses: EricAustinBarber/SUNDT_DW_CICD_PIPELINE/.github/workflows/reusable-databricks.yml@0943d509c62fd579e39a80861e56f9a7a8014449
+    uses: EricAustinBarber/SUNDT_DW_CICD_PIPELINE/.github/workflows/reusable-databricks.yml@e544f66fdba2a3a254c6c314ff34299a63254b66
     with:
       mode: ci-test
       bundle_path: databricks
@@ -82,8 +82,8 @@ jobs:
 
       # Smoke should be part of the bundle (recommended) and invoked via bundle run:
       run_post_deploy_smoke: true
-      smoke_mode: notebook
-      smoke_notebook_path: /Workspace/Shared/DataFlow/example/test/sundt_example_bundle/files/resources/notebooks/smoke_tests/notebook_smoke_test
+      smoke_mode: bundle-run
+      smoke_job_key: smoke
 
       run_asset_validation: true
       # NOTE: This should eventually move out of /Repos and into the bundle as well.
@@ -102,7 +102,7 @@ jobs:
     name: cd-prod
     needs: [unit_tests]
     # TODO: move to org namespace and pin to a signed tag or immutable SHA.
-    uses: EricAustinBarber/SUNDT_DW_CICD_PIPELINE/.github/workflows/reusable-databricks.yml@0943d509c62fd579e39a80861e56f9a7a8014449
+    uses: EricAustinBarber/SUNDT_DW_CICD_PIPELINE/.github/workflows/reusable-databricks.yml@e544f66fdba2a3a254c6c314ff34299a63254b66
     with:
       mode: cd-prod
       bundle_path: databricks
@@ -115,8 +115,8 @@ jobs:
       post_deploy_summary_output: both
 
       run_post_deploy_smoke: true
-      smoke_mode: notebook
-      smoke_notebook_path: /Workspace/Shared/DataFlow/example/prod/sundt_example_bundle/files/resources/notebooks/smoke_tests/notebook_smoke_test
+      smoke_mode: bundle-run
+      smoke_job_key: smoke
 
       # For now, let prod also build+deploy for demo purposes.
       # Later, when you have a proper release promotion, set this to true and deploy only
