@@ -1,6 +1,6 @@
 # databricks.yml
 bundle:
-  name: sundt_example_bundle
+  name: sundt_edm_maturity
 
 sync:
   include:
@@ -10,29 +10,18 @@ sync:
 include:
   - resources/*.yml
 
+permissions:
+  - group_name: users
+    level: CAN_MANAGE
+
 targets:
   dev:
     default: true
     workspace:
-      root_path: /Workspace/Shared/DataFlow/example/dev/${bundle.name}
+      root_path: /Workspace/Shared/sundt-edm-maturity/dev/${bundle.name}
   test:
     workspace:
-      root_path: /Workspace/Shared/DataFlow/example/test/${bundle.name}
+      root_path: /Workspace/Shared/sundt-edm-maturity/test/${bundle.name}
   prod:
     workspace:
-      root_path: /Workspace/Shared/DataFlow/example/prod/${bundle.name}
-
-resources:
-  jobs:
-    sample_job:
-      name: sample_job_${bundle.target}
-      performance_target: PERFORMANCE_OPTIMIZED
-      tasks:
-        - task_key: hello_task
-          environment_key: Default
-          notebook_task:
-            notebook_path: ${workspace.root_path}/files/resources/notebooks/smoke_tests/notebook_smoke_test
-      environments:
-        - environment_key: Default
-          spec:
-            environment_version: "4"
+      root_path: /Workspace/Shared/sundt-edm-maturity/prod/${bundle.name}

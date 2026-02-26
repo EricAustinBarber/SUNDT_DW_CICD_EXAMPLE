@@ -103,7 +103,7 @@ jobs:
               "repo": "${{ github.repository }}",
               "git_ref": "${{ github.ref }}",
               "workflow_run_id": "${{ github.run_id }}",
-              "bundle_name": "sundt_example_bundle"
+              "bundle_name": "sundt_edm_maturity"
             }
           },
           {
@@ -165,7 +165,6 @@ jobs:
       smoke_mode: bundle-run
       smoke_job_key: smoke
 
-      # For now, let prod also build+deploy for demo purposes.
       # Later, when you have a proper release promotion, set this to true and deploy only
       # previously-built artifacts.
       promote_artifact_only: false
