@@ -12,9 +12,9 @@ This repository demonstrates how to consume the reusable GitHub workflow from:
 ## Required GitHub Environments (in this repo)
 
 Create these environments in GitHub UI (`Settings -> Environments`):
-- `DataBricks-Dev`: `DATABRICKS_HOST`, `DATABRICKS_TOKEN`, `DATABRICKS_VALIDATION_CLUSTER_ID`, `DATABRICKS_SQL_WAREHOUSE_ID`
-- `DataBricks-Test`: `DATABRICKS_HOST`, `DATABRICKS_TOKEN`, `DATABRICKS_VALIDATION_CLUSTER_ID`, `DATABRICKS_SQL_WAREHOUSE_ID`
-- `DataBricks-Prod`: `DATABRICKS_HOST`, `DATABRICKS_TOKEN`, `DATABRICKS_VALIDATION_CLUSTER_ID`, `DATABRICKS_SQL_WAREHOUSE_ID` (with required approvers)
+- `DataBricks-Dev`: `DATABRICKS_HOST`, `DATABRICKS_TOKEN`, `DATABRICKS_SQL_WAREHOUSE_ID`
+- `DataBricks-Test`: `DATABRICKS_HOST`, `DATABRICKS_TOKEN`, `DATABRICKS_SQL_WAREHOUSE_ID`
+- `DataBricks-Prod`: `DATABRICKS_HOST`, `DATABRICKS_TOKEN`, `DATABRICKS_SQL_WAREHOUSE_ID` (with required approvers)
 
 ## Notes
 - The Databricks asset validation notebook path used in the workflow must exist in your workspace.

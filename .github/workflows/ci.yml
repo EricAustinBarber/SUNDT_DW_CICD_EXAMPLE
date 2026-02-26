@@ -58,7 +58,6 @@ jobs:
       environment_name: DataBricks-Dev
 
       # Dev: validate + deploy only, no post-deploy tests
-      run_asset_validation: false
       run_post_deployment_tests: true
       post_deploy_summary_output: both
       run_post_deploy_smoke: true
@@ -67,7 +66,6 @@ jobs:
     secrets:
       DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
       DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
-      DATABRICKS_VALIDATION_CLUSTER_ID: ${{ secrets.DATABRICKS_VALIDATION_CLUSTER_ID }}
       DATABRICKS_SQL_WAREHOUSE_ID: ${{ secrets.DATABRICKS_SQL_WAREHOUSE_ID }}
 
   ci_test:
@@ -93,10 +91,6 @@ jobs:
       run_post_deploy_smoke: true
       smoke_mode: bundle-run
       smoke_job_key: smoke
-
-      run_asset_validation: true
-      # NOTE: This should eventually move out of /Repos and into the bundle as well.
-      asset_validation_notebook_path: /Workspace/Shared/DataFlow/example/test/sundt_example_bundle/files/validation_driver/validation_driver_notebook
 
       # Maturity telemetry + warn-only gate in test.
       run_post_deploy_bundle_jobs: true
@@ -151,7 +145,6 @@ jobs:
     secrets:
       DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
       DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
-      DATABRICKS_VALIDATION_CLUSTER_ID: ${{ secrets.DATABRICKS_VALIDATION_CLUSTER_ID }}
       DATABRICKS_SQL_WAREHOUSE_ID: ${{ secrets.DATABRICKS_SQL_WAREHOUSE_ID }}
 
   cd_prod:
@@ -168,7 +161,6 @@ jobs:
       environment_name: DataBricks-Prod
 
       # Prod: deploy + post-deploy verification + smoke
-      run_asset_validation: false
       run_post_deployment_tests: true
       post_deploy_summary_output: both
 
@@ -183,5 +175,4 @@ jobs:
     secrets:
       DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
       DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
-      DATABRICKS_VALIDATION_CLUSTER_ID: ${{ secrets.DATABRICKS_VALIDATION_CLUSTER_ID }}
       DATABRICKS_SQL_WAREHOUSE_ID: ${{ secrets.DATABRICKS_SQL_WAREHOUSE_ID }}
