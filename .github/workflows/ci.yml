@@ -49,16 +49,14 @@ jobs:
     if: ${{ github.ref_name == 'dev' || (github.event_name == 'pull_request' && github.base_ref == 'dev') }}
     name: ci-dev
     needs: [unit_tests]
-    # TODO: move to org namespace and pin to a signed tag or immutable SHA.
-    uses: EricAustinBarber/sundt-edm-cicd-platform/.github/workflows/reusable-databricks.yml@main
+    uses: EricAustinBarber/sundt-edm-cicd-platform/.github/workflows/reusable-databricks.yml@81cdf941de0fae03687fe5cc7bba08c3501dd183
     with:
       mode: ci-dev
       bundle_path: databricks
       target: dev
       environment_name: DataBricks-Dev
 
-      # Dev: validate + deploy only, no post-deploy tests
-      run_asset_validation: false
+      # Dev: validate + deploy + post-deploy verification + smoke
       run_post_deployment_tests: true
       post_deploy_summary_output: both
       run_post_deploy_smoke: true
@@ -67,7 +65,6 @@ jobs:
     secrets:
       DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
       DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
-      DATABRICKS_VALIDATION_CLUSTER_ID: ${{ secrets.DATABRICKS_VALIDATION_CLUSTER_ID }}
       DATABRICKS_SQL_WAREHOUSE_ID: ${{ secrets.DATABRICKS_SQL_WAREHOUSE_ID }}
 
   ci_test:
@@ -77,8 +74,7 @@ jobs:
     if: ${{ github.ref_name == 'test' || (github.event_name == 'pull_request' && (github.base_ref == 'test' || github.base_ref == 'prod')) }}
     name: ci-test
     needs: [unit_tests]
-    # TODO: move to org namespace and pin to a signed tag or immutable SHA.
-    uses: EricAustinBarber/sundt-edm-cicd-platform/.github/workflows/reusable-databricks.yml@main
+    uses: EricAustinBarber/sundt-edm-cicd-platform/.github/workflows/reusable-databricks.yml@81cdf941de0fae03687fe5cc7bba08c3501dd183
     with:
       mode: ci-test
       bundle_path: databricks
@@ -94,10 +90,6 @@ jobs:
       smoke_mode: bundle-run
       smoke_job_key: smoke
 
-      run_asset_validation: true
-      # NOTE: This should eventually move out of /Repos and into the bundle as well.
-      asset_validation_notebook_path: /Workspace/Shared/DataFlow/example/test/sundt_example_bundle/files/validation_driver/validation_driver_notebook
-
       # Maturity telemetry + warn-only gate in test.
       run_post_deploy_bundle_jobs: true
       post_deploy_bundle_jobs_json: |
@@ -111,7 +103,7 @@ jobs:
               "repo": "${{ github.repository }}",
               "git_ref": "${{ github.ref }}",
               "workflow_run_id": "${{ github.run_id }}",
-              "bundle_name": "sundt_example_bundle"
+              "bundle_name": "sundt_edm_maturity"
             }
           },
           {
@@ -151,7 +143,6 @@ jobs:
     secrets:
       DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
       DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
-      DATABRICKS_VALIDATION_CLUSTER_ID: ${{ secrets.DATABRICKS_VALIDATION_CLUSTER_ID }}
       DATABRICKS_SQL_WAREHOUSE_ID: ${{ secrets.DATABRICKS_SQL_WAREHOUSE_ID }}
 
   cd_prod:
@@ -159,8 +150,7 @@ jobs:
     if: ${{ github.event_name == 'push' && github.ref_name == 'prod' }}
     name: cd-prod
     needs: [unit_tests]
-    # TODO: move to org namespace and pin to a signed tag or immutable SHA.
-    uses: EricAustinBarber/sundt-edm-cicd-platform/.github/workflows/reusable-databricks.yml@main
+    uses: EricAustinBarber/sundt-edm-cicd-platform/.github/workflows/reusable-databricks.yml@81cdf941de0fae03687fe5cc7bba08c3501dd183
     with:
       mode: cd-prod
       bundle_path: databricks
@@ -168,7 +158,6 @@ jobs:
       environment_name: DataBricks-Prod
 
       # Prod: deploy + post-deploy verification + smoke
-      run_asset_validation: false
       run_post_deployment_tests: true
       post_deploy_summary_output: both
 
@@ -176,12 +165,10 @@ jobs:
       smoke_mode: bundle-run
       smoke_job_key: smoke
 
-      # For now, let prod also build+deploy for demo purposes.
       # Later, when you have a proper release promotion, set this to true and deploy only
       # previously-built artifacts.
       promote_artifact_only: false
     secrets:
       DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
       DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
-      DATABRICKS_VALIDATION_CLUSTER_ID: ${{ secrets.DATABRICKS_VALIDATION_CLUSTER_ID }}
       DATABRICKS_SQL_WAREHOUSE_ID: ${{ secrets.DATABRICKS_SQL_WAREHOUSE_ID }}
