@@ -102,10 +102,6 @@ resources:
           default: ""
         - name: commit_sha
           default: ${bundle.git.commit}
-        - name: scorecard_source
-          default: "workspace_csv"
-        - name: scorecard_path
-          default: file:${workspace.root_path}/files/resources/scorecard/databricks-environment-scorecard.csv
         - name: status_json
           default: ""
       tasks:
@@ -117,8 +113,6 @@ resources:
               env: "{{job.parameters.env}}"
               run_id: "{{job.parameters.run_id}}"
               commit_sha: "{{job.parameters.commit_sha}}"
-              scorecard_source: "{{job.parameters.scorecard_source}}"
-              scorecard_path: "{{job.parameters.scorecard_path}}"
               status_json: "{{job.parameters.status_json}}"
       environments:
         - environment_key: Default

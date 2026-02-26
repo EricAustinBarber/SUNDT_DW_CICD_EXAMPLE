@@ -8,8 +8,7 @@ This workflow is **non-blocking** and should not gate deployments until approval
 
 ## Inputs
 
-- Scorecard definition: `docs/databricks-environment-scorecard.csv` (canonical)
-- Scorecard bundle copy: `databricks/resources/scorecard/databricks-environment-scorecard.csv`
+- Scorecard definition: embedded in `databricks/resources/notebooks/maturity/scorecard_evaluation_notebook.py`
 - Assessment evidence: `EnterpriseDataMaturity/assessments/databricks-transformation-review.md`
 - Assessment evidence: `EnterpriseDataMaturity/assessments/assessment-tracker.csv`
 - Assessment evidence: `EnterpriseDataMaturity/assessments/databricks-notebook-inventory.csv`
@@ -26,8 +25,8 @@ This workflow is **non-blocking** and should not gate deployments until approval
 
 1. Update assessment evidence in `EnterpriseDataMaturity/assessments/`.
 2. Update scorecard definition if needed:
-   - Edit `docs/databricks-environment-scorecard.csv`.
-   - Copy changes to `databricks/resources/scorecard/databricks-environment-scorecard.csv`.
+   - Edit the embedded list in `databricks/resources/notebooks/maturity/scorecard_evaluation_notebook.py`.
+   - Keep `docs/databricks-environment-scorecard.md` in sync.
 3. Maintain scorecard status via loader notebook:
    - Job: `maturity-scorecard-status-load-test`
    - Baseline statuses are embedded in `scorecard_status_loader_notebook.py`

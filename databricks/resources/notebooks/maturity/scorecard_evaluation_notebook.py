@@ -3,29 +3,19 @@
 dbutils.widgets.text("env", "")
 dbutils.widgets.text("run_id", "")
 dbutils.widgets.text("commit_sha", "")
-dbutils.widgets.text("scorecard_source", "workspace_csv")  # workspace_csv|embedded
-dbutils.widgets.text("scorecard_path", "")            # used when scorecard_source=workspace_csv
 dbutils.widgets.text("status_json", "")               # optional JSON array for overrides (unused in default workflow)
 
 ENV = dbutils.widgets.get("env") or "unknown"
 RUN_ID = dbutils.widgets.get("run_id") or "manual"
 COMMIT_SHA = dbutils.widgets.get("commit_sha") or None
-SCORECARD_SOURCE = (dbutils.widgets.get("scorecard_source") or "workspace_csv").strip().lower()
-SCORECARD_PATH = dbutils.widgets.get("scorecard_path") or ""
 STATUS_JSON = dbutils.widgets.get("status_json") or ""
 
 import json
 from pyspark.sql import functions as F
 from pyspark.sql import Window
 
-def normalize_path(path: str) -> str:
-    if path.startswith("dbfs:/") or path.startswith("file:/"):
-        return path
-    if path.startswith("/Workspace/"):
-        return f"file:{path}"
-    return path
-
-SCORECARD_PATH = normalize_path(SCORECARD_PATH) if SCORECARD_PATH else SCORECARD_PATH
+SCORECARD_SOURCE = "embedded"
+SCORECARD_PATH = ""
 
 spark.sql("CREATE SCHEMA IF NOT EXISTS governance_maturity")
 
@@ -174,23 +164,6 @@ embedded_definitions = [
 
 
 def load_scorecard_definition():
-    if SCORECARD_SOURCE == "workspace_csv":
-        if not SCORECARD_PATH:
-            raise Exception("scorecard_source=workspace_csv requires scorecard_path")
-        df = (spark.read.option("header", "true")
-              .option("inferSchema", "true")
-              .csv(SCORECARD_PATH))
-        return (df.select(
-                    F.col("check_id"),
-                    F.col("dimension"),
-                    F.col("check").alias("check_name"),
-                    F.col("weight").cast("int"),
-                    F.col("pass_criteria"),
-                    F.col("evidence_source"),
-                )
-                .withColumn("updated_at", F.current_timestamp()))
-    if SCORECARD_SOURCE not in ("embedded", "workspace_csv"):
-        raise Exception("scorecard_source must be one of: workspace_csv|embedded")
     df = spark.createDataFrame(embedded_definitions)
     return df.withColumn("updated_at", F.current_timestamp())
 
