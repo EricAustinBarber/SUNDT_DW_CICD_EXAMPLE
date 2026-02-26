@@ -198,6 +198,17 @@ def normalize_status(value: str):
     return "Unknown"
 
 
+def align_to_table_schema(df, table_name: str):
+    try:
+        target = spark.table(table_name)
+    except Exception:
+        return df
+    for field in target.schema.fields:
+        if field.name in df.columns:
+            df = df.withColumn(field.name, F.col(field.name).cast(field.dataType))
+    return df
+
+
 status_rows = []
 now_ts = spark.sql("SELECT current_timestamp() AS ts").collect()[0]["ts"]
 if STATUS_JSON.strip():
@@ -221,6 +232,9 @@ if status_rows:
     status_df = spark.createDataFrame(
         status_rows,
         schema="check_id string, status string, notes string, env string, updated_at timestamp, updated_by string"
+    )
+    status_df = align_to_table_schema(
+        status_df, "governance_maturity.scorecard_check_status"
     )
     status_df.write.mode("append").format("delta").saveAsTable("governance_maturity.scorecard_check_status")
 
@@ -312,6 +326,9 @@ result_df = spark.createDataFrame([(
     warned_reasons array<string>, details_json string
 """)
 
+result_df = align_to_table_schema(
+    result_df, "governance_maturity.scorecard_results"
+)
 result_df.write.mode("append").format("delta").saveAsTable("governance_maturity.scorecard_results")
 
 check_results_df = (scored
@@ -328,18 +345,7 @@ check_results_df = (scored
                         F.col("notes"),
                         F.col("score"),
                         F.col("weighted_score"),
-                    ))
-
-def align_to_table_schema(df, table_name: str):
-    try:
-        target = spark.table(table_name)
-    except Exception:
-        return df
-    for field in target.schema.fields:
-        if field.name in df.columns:
-            df = df.withColumn(field.name, F.col(field.name).cast(field.dataType))
-    return df
-
+                    )) 
 check_results_df = align_to_table_schema(
     check_results_df, "governance_maturity.scorecard_check_results"
 )
