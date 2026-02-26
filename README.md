@@ -24,3 +24,4 @@ Create these environments in GitHub UI (`Settings -> Environments`):
 - Branch governance setup is documented in `docs/branch-protection-checklist.md`.
 - Dev/test workflow execution is documented in `docs/workflow-validation-runbook.md`.
 - End-to-end promotion path (`dev` -> `test` -> `prod`) is documented in `docs/promotion-demo-runbook.md`.
+- Asset build and decommission workflow is documented in `docs/databricks-asset-bundles-lifecycle.md`.
