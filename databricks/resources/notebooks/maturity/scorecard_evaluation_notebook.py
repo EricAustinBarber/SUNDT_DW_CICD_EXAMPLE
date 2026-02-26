@@ -330,6 +330,20 @@ check_results_df = (scored
                         F.col("weighted_score"),
                     ))
 
+def align_to_table_schema(df, table_name: str):
+    try:
+        target = spark.table(table_name)
+    except Exception:
+        return df
+    for field in target.schema.fields:
+        if field.name in df.columns:
+            df = df.withColumn(field.name, F.col(field.name).cast(field.dataType))
+    return df
+
+check_results_df = align_to_table_schema(
+    check_results_df, "governance_maturity.scorecard_check_results"
+)
+
 check_results_df.write.mode("append").format("delta").saveAsTable("governance_maturity.scorecard_check_results")
 
 print(f"[scorecard] env={ENV} run_id={RUN_ID} total_score={total_score} status={overall_status}")
