@@ -49,15 +49,14 @@ jobs:
     if: ${{ github.ref_name == 'dev' || (github.event_name == 'pull_request' && github.base_ref == 'dev') }}
     name: ci-dev
     needs: [unit_tests]
-    # TODO: move to org namespace and pin to a signed tag or immutable SHA.
-    uses: EricAustinBarber/sundt-edm-cicd-platform/.github/workflows/reusable-databricks.yml@main
+    uses: EricAustinBarber/sundt-edm-cicd-platform/.github/workflows/reusable-databricks.yml@81cdf941de0fae03687fe5cc7bba08c3501dd183
     with:
       mode: ci-dev
       bundle_path: databricks
       target: dev
       environment_name: DataBricks-Dev
 
-      # Dev: validate + deploy only, no post-deploy tests
+      # Dev: validate + deploy + post-deploy verification + smoke
       run_post_deployment_tests: true
       post_deploy_summary_output: both
       run_post_deploy_smoke: true
@@ -75,8 +74,7 @@ jobs:
     if: ${{ github.ref_name == 'test' || (github.event_name == 'pull_request' && (github.base_ref == 'test' || github.base_ref == 'prod')) }}
     name: ci-test
     needs: [unit_tests]
-    # TODO: move to org namespace and pin to a signed tag or immutable SHA.
-    uses: EricAustinBarber/sundt-edm-cicd-platform/.github/workflows/reusable-databricks.yml@main
+    uses: EricAustinBarber/sundt-edm-cicd-platform/.github/workflows/reusable-databricks.yml@81cdf941de0fae03687fe5cc7bba08c3501dd183
     with:
       mode: ci-test
       bundle_path: databricks
@@ -152,8 +150,7 @@ jobs:
     if: ${{ github.event_name == 'push' && github.ref_name == 'prod' }}
     name: cd-prod
     needs: [unit_tests]
-    # TODO: move to org namespace and pin to a signed tag or immutable SHA.
-    uses: EricAustinBarber/sundt-edm-cicd-platform/.github/workflows/reusable-databricks.yml@main
+    uses: EricAustinBarber/sundt-edm-cicd-platform/.github/workflows/reusable-databricks.yml@81cdf941de0fae03687fe5cc7bba08c3501dd183
     with:
       mode: cd-prod
       bundle_path: databricks

@@ -26,12 +26,13 @@ resources:
   jobs:
     sample_job:
       name: sample_job_${bundle.target}
+      performance_target: PERFORMANCE_OPTIMIZED
       tasks:
         - task_key: hello_task
+          environment_key: Default
           notebook_task:
-            notebook_path: ${workspace.root_path}/files/resources/notebooks/hello_world
-
-variables:
-  validation_cluster_id:
-    description: "All-purpose cluster ID for CI smoke and validation jobs"
-    default: ""
+            notebook_path: ${workspace.root_path}/files/resources/notebooks/smoke_tests/notebook_smoke_test
+      environments:
+        - environment_key: Default
+          spec:
+            environment_version: "4"
