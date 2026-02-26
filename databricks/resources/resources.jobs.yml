@@ -103,7 +103,7 @@ resources:
         - name: commit_sha
           default: ${bundle.git.commit}
         - name: scorecard_source
-          default: "embedded"
+          default: "workspace_csv"
         - name: scorecard_path
           default: file:${workspace.root_path}/files/resources/scorecard/databricks-environment-scorecard.csv
         - name: status_json

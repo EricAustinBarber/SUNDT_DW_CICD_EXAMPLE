@@ -3,14 +3,14 @@
 dbutils.widgets.text("env", "")
 dbutils.widgets.text("run_id", "")
 dbutils.widgets.text("commit_sha", "")
-dbutils.widgets.text("scorecard_source", "embedded")  # embedded|workspace_csv
+dbutils.widgets.text("scorecard_source", "workspace_csv")  # workspace_csv|embedded
 dbutils.widgets.text("scorecard_path", "")            # used when scorecard_source=workspace_csv
 dbutils.widgets.text("status_json", "")               # optional JSON array for overrides (unused in default workflow)
 
 ENV = dbutils.widgets.get("env") or "unknown"
 RUN_ID = dbutils.widgets.get("run_id") or "manual"
 COMMIT_SHA = dbutils.widgets.get("commit_sha") or None
-SCORECARD_SOURCE = (dbutils.widgets.get("scorecard_source") or "embedded").strip().lower()
+SCORECARD_SOURCE = (dbutils.widgets.get("scorecard_source") or "workspace_csv").strip().lower()
 SCORECARD_PATH = dbutils.widgets.get("scorecard_path") or ""
 STATUS_JSON = dbutils.widgets.get("status_json") or ""
 
@@ -65,6 +65,25 @@ CREATE TABLE IF NOT EXISTS governance_maturity.scorecard_results (
   blocked_reasons ARRAY<STRING>,
   warned_reasons  ARRAY<STRING>,
   details_json    STRING
+)
+USING DELTA
+PARTITIONED BY (env)
+""")
+
+spark.sql("""
+CREATE TABLE IF NOT EXISTS governance_maturity.scorecard_check_results (
+  collected_at    TIMESTAMP NOT NULL,
+  env             STRING NOT NULL,
+  run_id          STRING NOT NULL,
+  commit_sha      STRING,
+  check_id        STRING NOT NULL,
+  dimension       STRING NOT NULL,
+  check_name      STRING NOT NULL,
+  weight          INT    NOT NULL,
+  status_norm     STRING NOT NULL,
+  notes           STRING,
+  score           DOUBLE NOT NULL,
+  weighted_score  DOUBLE NOT NULL
 )
 USING DELTA
 PARTITIONED BY (env)
@@ -155,7 +174,9 @@ embedded_definitions = [
 
 
 def load_scorecard_definition():
-    if SCORECARD_SOURCE == "workspace_csv" and SCORECARD_PATH:
+    if SCORECARD_SOURCE == "workspace_csv":
+        if not SCORECARD_PATH:
+            raise Exception("scorecard_source=workspace_csv requires scorecard_path")
         df = (spark.read.option("header", "true")
               .option("inferSchema", "true")
               .csv(SCORECARD_PATH))
@@ -168,11 +189,27 @@ def load_scorecard_definition():
                     F.col("evidence_source"),
                 )
                 .withColumn("updated_at", F.current_timestamp()))
+    if SCORECARD_SOURCE not in ("embedded", "workspace_csv"):
+        raise Exception("scorecard_source must be one of: workspace_csv|embedded")
     df = spark.createDataFrame(embedded_definitions)
     return df.withColumn("updated_at", F.current_timestamp())
 
 
 definition_df = load_scorecard_definition()
+if definition_df.filter(F.col("check_id").isNull() | F.col("dimension").isNull() | F.col("check_name").isNull()).count() > 0:
+    raise Exception("scorecard_definition contains null required fields (check_id, dimension, check_name)")
+
+duplicate_ids = (definition_df.groupBy("check_id")
+                 .count()
+                 .filter(F.col("count") > 1)
+                 .count())
+if duplicate_ids > 0:
+    raise Exception("scorecard_definition contains duplicate check_id values")
+
+weight_sum = definition_df.agg(F.sum("weight").alias("weight_sum")).collect()[0]["weight_sum"] or 0
+if int(weight_sum) != 100:
+    raise Exception(f"scorecard_definition weights must sum to 100, got {weight_sum}")
+
 spark.sql("DROP TABLE IF EXISTS governance_maturity.scorecard_definition")
 definition_df.write.mode("overwrite").format("delta").saveAsTable("governance_maturity.scorecard_definition")
 
@@ -204,7 +241,7 @@ if STATUS_JSON.strip():
             item.get("notes"),
             ENV,
             now_ts,
-            "notebook"
+            "status_json"
         ))
 
 if status_rows:
@@ -244,6 +281,19 @@ def status_score(col):
 scored = (joined
           .withColumn("score", status_score("status_norm"))
           .withColumn("weighted_score", F.col("score") * F.col("weight")))
+
+print("[scorecard] dimension summary:")
+(scored.groupBy("dimension")
+ .agg(
+     F.sum("weighted_score").alias("dimension_score"),
+     F.sum("weight").alias("dimension_weight"),
+     F.sum(F.when(F.col("status_norm") == "Pass", F.lit(1)).otherwise(F.lit(0))).alias("pass_count"),
+     F.sum(F.when(F.col("status_norm") == "Partial", F.lit(1)).otherwise(F.lit(0))).alias("partial_count"),
+     F.sum(F.when(F.col("status_norm") == "Fail", F.lit(1)).otherwise(F.lit(0))).alias("fail_count"),
+     F.sum(F.when(F.col("status_norm") == "Unknown", F.lit(1)).otherwise(F.lit(0))).alias("unknown_count"),
+ )
+ .orderBy("dimension")
+ .show(50, False))
 
 total_score = scored.agg(F.sum("weighted_score").alias("total")).collect()[0]["total"] or 0.0
 
@@ -290,6 +340,24 @@ result_df = spark.createDataFrame([(
 """)
 
 result_df.write.mode("append").format("delta").saveAsTable("governance_maturity.scorecard_results")
+
+check_results_df = (scored
+                    .select(
+                        F.lit(now_ts).alias("collected_at"),
+                        F.lit(ENV).alias("env"),
+                        F.lit(RUN_ID).alias("run_id"),
+                        F.lit(COMMIT_SHA).alias("commit_sha"),
+                        F.col("check_id"),
+                        F.col("dimension"),
+                        F.col("check_name"),
+                        F.col("weight"),
+                        F.col("status_norm"),
+                        F.col("notes"),
+                        F.col("score"),
+                        F.col("weighted_score"),
+                    ))
+
+check_results_df.write.mode("append").format("delta").saveAsTable("governance_maturity.scorecard_check_results")
 
 print(f"[scorecard] env={ENV} run_id={RUN_ID} total_score={total_score} status={overall_status}")
 if blocked:
