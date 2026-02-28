@@ -138,8 +138,6 @@ resources:
       parameters:
         - name: env
           default: ${bundle.target}
-        - name: status_path
-          default: file:${workspace.root_path}/files/resources/scorecard/scorecard-check-status.csv
         - name: updated_by
           default: "bundle"
       tasks:
@@ -149,5 +147,4 @@ resources:
             notebook_path: ${workspace.root_path}/files/resources/notebooks/maturity/scorecard_status_loader_notebook
             base_parameters:
               env: "{{job.parameters.env}}"
-              status_path: "{{job.parameters.status_path}}"
               updated_by: "{{job.parameters.updated_by}}"
