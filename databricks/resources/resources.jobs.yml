@@ -1,0 +1,174 @@
+# databricks/resources.jobs.yml
+# Smoke job definition for CI/CD validation (invoked via `databricks bundle run smoke --target <env>`)
+
+resources:
+  jobs:
+    smoke:
+      name: smoke-${bundle.target}
+      performance_target: PERFORMANCE_OPTIMIZED
+      tags:
+        purpose: ci-smoke
+        environment: ${bundle.target}
+      tasks:
+        - task_key: smoke_notebook
+          description: Lightweight smoke test to validate compute-plane execution
+          environment_key: Default
+          notebook_task:
+            # Notebook is deployed with the bundle under the workspace root.
+            notebook_path: ${workspace.root_path}/files/resources/notebooks/smoke_tests/notebook_smoke_test
+            base_parameters:
+              env: ${bundle.target}
+      environments:
+        - environment_key: Default
+          spec:
+            environment_version: "4"
+
+    maturity_collect:
+      name: maturity-collect-${bundle.target}
+      performance_target: PERFORMANCE_OPTIMIZED
+      tags:
+        purpose: maturity-telemetry
+        environment: ${bundle.target}
+      parameters:
+        - name: env
+          default: ${bundle.target}
+        - name: run_id
+          default: ""
+        - name: commit_sha
+          default: ${bundle.git.commit}
+        - name: repo
+          default: ""
+        - name: git_ref
+          default: ""
+        - name: workflow_run_id
+          default: ""
+        - name: bundle_name
+          default: ${bundle.name}
+      tasks:
+        - task_key: maturity_collect
+          environment_key: Default
+          notebook_task:
+            notebook_path: ${workspace.root_path}/files/resources/notebooks/maturity/maturity_collector_notebook
+            base_parameters:
+              env: "{{job.parameters.env}}"
+              run_id: "{{job.parameters.run_id}}"
+              commit_sha: "{{job.parameters.commit_sha}}"
+              repo: "{{job.parameters.repo}}"
+              git_ref: "{{job.parameters.git_ref}}"
+              workflow_run_id: "{{job.parameters.workflow_run_id}}"
+              bundle_name: "{{job.parameters.bundle_name}}"
+      environments:
+        - environment_key: Default
+          spec:
+            environment_version: "4"
+
+    maturity_ci_check:
+      name: maturity-ci-check-${bundle.target}
+      performance_target: PERFORMANCE_OPTIMIZED
+      tags:
+        purpose: maturity-gate
+        environment: ${bundle.target}
+      parameters:
+        - name: env
+          default: ${bundle.target}
+        - name: enforcement_mode
+          default: ""
+        - name: maturity_override
+          default: "none"
+      tasks:
+        - task_key: maturity_ci_check
+          environment_key: Default
+          notebook_task:
+            notebook_path: ${workspace.root_path}/files/resources/notebooks/maturity/maturity_ci_check_notebook
+            base_parameters:
+              env: "{{job.parameters.env}}"
+              enforcement_mode: "{{job.parameters.enforcement_mode}}"
+              maturity_override: "{{job.parameters.maturity_override}}"
+      environments:
+        - environment_key: Default
+          spec:
+            environment_version: "4"
+
+    maturity_scorecard_eval:
+      name: maturity-scorecard-eval-${bundle.target}
+      performance_target: PERFORMANCE_OPTIMIZED
+      tags:
+        purpose: maturity-scorecard
+        environment: ${bundle.target}
+      parameters:
+        - name: env
+          default: ${bundle.target}
+        - name: run_id
+          default: ""
+        - name: commit_sha
+          default: ${bundle.git.commit}
+        - name: status_json
+          default: ""
+      tasks:
+        - task_key: maturity_scorecard_eval
+          environment_key: Default
+          notebook_task:
+            notebook_path: ${workspace.root_path}/files/resources/notebooks/maturity/scorecard_evaluation_notebook
+            base_parameters:
+              env: "{{job.parameters.env}}"
+              run_id: "{{job.parameters.run_id}}"
+              commit_sha: "{{job.parameters.commit_sha}}"
+              status_json: "{{job.parameters.status_json}}"
+      environments:
+        - environment_key: Default
+          spec:
+            environment_version: "4"
+
+    maturity_scorecard_evidence_stub:
+      name: maturity-scorecard-evidence-stub-${bundle.target}
+      performance_target: PERFORMANCE_OPTIMIZED
+      tags:
+        purpose: maturity-scorecard
+        environment: ${bundle.target}
+      parameters:
+        - name: env
+          default: ${bundle.target}
+        - name: status_source_path
+          default: ""
+        - name: write_mode
+          default: "dry_run"
+        - name: updated_by
+          default: "evidence_stub"
+      tasks:
+        - task_key: maturity_scorecard_evidence_stub
+          environment_key: Default
+          notebook_task:
+            notebook_path: ${workspace.root_path}/files/resources/notebooks/maturity/scorecard_evidence_stub_notebook
+            base_parameters:
+              env: "{{job.parameters.env}}"
+              status_source_path: "{{job.parameters.status_source_path}}"
+              write_mode: "{{job.parameters.write_mode}}"
+              updated_by: "{{job.parameters.updated_by}}"
+      environments:
+        - environment_key: Default
+          spec:
+            environment_version: "4"
+
+    maturity_scorecard_status_load:
+      name: maturity-scorecard-status-load-${bundle.target}
+      performance_target: PERFORMANCE_OPTIMIZED
+      tags:
+        purpose: maturity-scorecard
+        environment: ${bundle.target}
+      parameters:
+        - name: env
+          default: ${bundle.target}
+        - name: updated_by
+          default: "bundle"
+      tasks:
+        - task_key: maturity_scorecard_status_load
+          environment_key: Default
+          notebook_task:
+            notebook_path: ${workspace.root_path}/files/resources/notebooks/maturity/scorecard_status_loader_notebook
+            base_parameters:
+              env: "{{job.parameters.env}}"
+              updated_by: "{{job.parameters.updated_by}}"
+      environments:
+        - environment_key: Default
+          spec:
+            environment_version: "4"

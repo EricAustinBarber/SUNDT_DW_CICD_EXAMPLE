@@ -1,26 +1,27 @@
+# databricks.yml
 bundle:
-  name: sundt_example_bundle
+  name: sundt_edm_maturity
 
 sync:
   include:
     - resources/**
+    - validation_driver/**
 
 include:
-  - resources.jobs.yml
+  - resources/*.yml
 
-variables:
-  validation_cluster_id:
-    description: "All-purpose cluster ID for CI smoke and validation jobs"
-    default: ""
+permissions:
+  - group_name: users
+    level: CAN_MANAGE
 
 targets:
   dev:
     default: true
     workspace:
-      root_path: /Workspace/Shared/DataFlow/example/dev/${bundle.name}
+      root_path: /Workspace/Shared/sundt-edm-maturity/dev/${bundle.name}
   test:
     workspace:
-      root_path: /Workspace/Shared/DataFlow/example/test/${bundle.name}
+      root_path: /Workspace/Shared/sundt-edm-maturity/test/${bundle.name}
   prod:
     workspace:
-      root_path: /Workspace/Shared/DataFlow/example/prod/${bundle.name}
+      root_path: /Workspace/Shared/sundt-edm-maturity/prod/${bundle.name}
