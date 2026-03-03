@@ -20,17 +20,22 @@ Create these environments in GitHub UI (`Settings -> Environments`):
 - `DataBricks-Test`: `DATABRICKS_HOST`, `DATABRICKS_TOKEN`, `DATABRICKS_SQL_WAREHOUSE_ID`, `DATABRICKS_SERVER_HOSTNAME`, `DATABRICKS_HTTP_PATH`, `DATABRICKS_CLUSTER_ID`
 - `DataBricks-Prod`: `DATABRICKS_HOST`, `DATABRICKS_TOKEN`, `DATABRICKS_SQL_WAREHOUSE_ID`, `DATABRICKS_SERVER_HOSTNAME`, `DATABRICKS_HTTP_PATH`, `DATABRICKS_CLUSTER_ID` (with required approvers)
 
-## Quality deployment flow
+## Deployment model (best practice)
 
-Post-deploy CI jobs now run:
+GitHub Actions deploys via Databricks Asset Bundles only. CI/CD is the source of
+truth for environment deployment:
+
+1. Validate and deploy bundle to the target (`dev`, `test`, `prod`)
+2. Run post-deploy smoke and scorecard bundle jobs in Databricks
+
+This keeps deployment logic inside the bundle contract and avoids runner-local
+or ad hoc deploy steps.
+
+For local development only, you can still run:
 
 ```bash
-just scorecard-bootstrap-deploy config="config/sources.template.yaml"
+just scorecard-bootstrap-deploy config/sources.template.yaml
 ```
-
-This executes:
-1. Databricks PySpark bootstrap for scorecard schemas/tables
-2. Scorecard definition load + SQL model/view deployment
 
 ## Notes
 

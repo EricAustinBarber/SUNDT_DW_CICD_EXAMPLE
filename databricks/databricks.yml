@@ -5,6 +5,7 @@ bundle:
 sync:
   include:
     - resources/**
+    - scorecard/**
     - validation_driver/**
 
 include:

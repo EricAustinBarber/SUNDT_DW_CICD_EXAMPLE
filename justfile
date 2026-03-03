@@ -23,10 +23,10 @@ install: doctor venv
   @{{venv_python}} -m pip install -e .
 
 run config="config/sources.yaml": install
-  @{{venv_python}} -m sundt_edm_quality.cli run --config {{config}}
+  @cfg="{{config}}"; cfg="${cfg#config=}"; {{venv_python}} -m sundt_edm_quality.cli run --config "$cfg"
 
 smoke config="config/sources.yaml": install
-  @{{venv_python}} -m sundt_edm_quality.cli smoke --config {{config}}
+  @cfg="{{config}}"; cfg="${cfg#config=}"; {{venv_python}} -m sundt_edm_quality.cli smoke --config "$cfg"
 
 smoke-ci: install
   @{{venv_python}} -m sundt_edm_quality.cli smoke --config config/sources.yaml --json-out artifacts/smoke.json
@@ -44,14 +44,14 @@ scorecard-deploy: install
   @{{venv_python}} -m sundt_edm_quality.cli deploy-scorecard --config config/sources.yaml
 
 scorecard-bootstrap config="config/sources.yaml": install
-  @{{venv_python}} -m sundt_edm_quality.cli bootstrap-scorecard --config {{config}}
+  @cfg="{{config}}"; cfg="${cfg#config=}"; {{venv_python}} -m sundt_edm_quality.cli bootstrap-scorecard --config "$cfg"
 
 scorecard-bootstrap-cluster cluster_id config="config/sources.yaml": install
-  @{{venv_python}} -m sundt_edm_quality.cli bootstrap-scorecard --config {{config}} --cluster-id {{cluster_id}}
+  @cfg="{{config}}"; cfg="${cfg#config=}"; {{venv_python}} -m sundt_edm_quality.cli bootstrap-scorecard --config "$cfg" --cluster-id {{cluster_id}}
 
 scorecard-bootstrap-deploy config="config/sources.yaml": install
-  @{{venv_python}} -m sundt_edm_quality.cli bootstrap-scorecard --config {{config}}
-  @{{venv_python}} -m sundt_edm_quality.cli deploy-scorecard --config {{config}}
+  @cfg="{{config}}"; cfg="${cfg#config=}"; {{venv_python}} -m sundt_edm_quality.cli bootstrap-scorecard --config "$cfg"
+  @cfg="{{config}}"; cfg="${cfg#config=}"; {{venv_python}} -m sundt_edm_quality.cli deploy-scorecard --config "$cfg"
 
 compile: install
   @{{venv_python}} -m compileall src

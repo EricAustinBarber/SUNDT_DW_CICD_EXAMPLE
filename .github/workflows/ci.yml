@@ -57,34 +57,35 @@ jobs:
       run_post_deploy_smoke: true
       smoke_mode: bundle-run
       smoke_job_key: smoke
+      run_post_deploy_bundle_jobs: true
+      post_deploy_bundle_jobs_json: |
+        [
+          {
+            "job_key": "quality_scorecard_deploy",
+            "params": {
+              "env": "dev"
+            }
+          },
+          {
+            "job_key": "maturity_scorecard_status_load",
+            "params": {
+              "env": "dev",
+              "updated_by": "bundle"
+            }
+          },
+          {
+            "job_key": "maturity_scorecard_eval",
+            "params": {
+              "env": "dev",
+              "run_id": "${{ github.run_id }}",
+              "commit_sha": "${{ github.sha }}"
+            }
+          }
+        ]
     secrets:
       DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
       DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
       DATABRICKS_SQL_WAREHOUSE_ID: ${{ secrets.DATABRICKS_SQL_WAREHOUSE_ID }}
-
-  scorecard_dev:
-    if: ${{ github.ref_name == 'dev' || (github.event_name == 'pull_request' && github.base_ref == 'dev') }}
-    name: scorecard-dev
-    needs: [ci_dev]
-    runs-on: ubuntu-latest
-    environment: DataBricks-Dev
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.10"
-      - name: Install just
-        uses: extractions/setup-just@v2
-      - name: Bootstrap + deploy scorecard
-        env:
-          DATABRICKS_SERVER_HOSTNAME: ${{ secrets.DATABRICKS_SERVER_HOSTNAME }}
-          DATABRICKS_HTTP_PATH: ${{ secrets.DATABRICKS_HTTP_PATH }}
-          DATABRICKS_ACCESS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
-          DATABRICKS_CLUSTER_ID: ${{ secrets.DATABRICKS_CLUSTER_ID }}
-        run: |
-          just scorecard-bootstrap-deploy config="config/sources.template.yaml"
 
   ci_test:
     if: ${{ github.ref_name == 'test' || (github.event_name == 'pull_request' && (github.base_ref == 'test' || github.base_ref == 'prod')) }}
@@ -104,6 +105,12 @@ jobs:
       run_post_deploy_bundle_jobs: true
       post_deploy_bundle_jobs_json: |
         [
+          {
+            "job_key": "quality_scorecard_deploy",
+            "params": {
+              "env": "test"
+            }
+          },
           {
             "job_key": "maturity_collect",
             "params": {
@@ -154,30 +161,6 @@ jobs:
       DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
       DATABRICKS_SQL_WAREHOUSE_ID: ${{ secrets.DATABRICKS_SQL_WAREHOUSE_ID }}
 
-  scorecard_test:
-    if: ${{ github.ref_name == 'test' || (github.event_name == 'pull_request' && (github.base_ref == 'test' || github.base_ref == 'prod')) }}
-    name: scorecard-test
-    needs: [ci_test]
-    runs-on: ubuntu-latest
-    environment: DataBricks-Test
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.10"
-      - name: Install just
-        uses: extractions/setup-just@v2
-      - name: Bootstrap + deploy scorecard
-        env:
-          DATABRICKS_SERVER_HOSTNAME: ${{ secrets.DATABRICKS_SERVER_HOSTNAME }}
-          DATABRICKS_HTTP_PATH: ${{ secrets.DATABRICKS_HTTP_PATH }}
-          DATABRICKS_ACCESS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
-          DATABRICKS_CLUSTER_ID: ${{ secrets.DATABRICKS_CLUSTER_ID }}
-        run: |
-          just scorecard-bootstrap-deploy config="config/sources.template.yaml"
-
   cd_prod:
     if: ${{ github.event_name == 'push' && github.ref_name == 'prod' }}
     name: cd-prod
@@ -193,32 +176,33 @@ jobs:
       run_post_deploy_smoke: true
       smoke_mode: bundle-run
       smoke_job_key: smoke
+      run_post_deploy_bundle_jobs: true
+      post_deploy_bundle_jobs_json: |
+        [
+          {
+            "job_key": "quality_scorecard_deploy",
+            "params": {
+              "env": "prod"
+            }
+          },
+          {
+            "job_key": "maturity_scorecard_status_load",
+            "params": {
+              "env": "prod",
+              "updated_by": "bundle"
+            }
+          },
+          {
+            "job_key": "maturity_scorecard_eval",
+            "params": {
+              "env": "prod",
+              "run_id": "${{ github.run_id }}",
+              "commit_sha": "${{ github.sha }}"
+            }
+          }
+        ]
       promote_artifact_only: false
     secrets:
       DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
       DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
       DATABRICKS_SQL_WAREHOUSE_ID: ${{ secrets.DATABRICKS_SQL_WAREHOUSE_ID }}
-
-  scorecard_prod:
-    if: ${{ github.event_name == 'push' && github.ref_name == 'prod' }}
-    name: scorecard-prod
-    needs: [cd_prod]
-    runs-on: ubuntu-latest
-    environment: DataBricks-Prod
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.10"
-      - name: Install just
-        uses: extractions/setup-just@v2
-      - name: Bootstrap + deploy scorecard
-        env:
-          DATABRICKS_SERVER_HOSTNAME: ${{ secrets.DATABRICKS_SERVER_HOSTNAME }}
-          DATABRICKS_HTTP_PATH: ${{ secrets.DATABRICKS_HTTP_PATH }}
-          DATABRICKS_ACCESS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
-          DATABRICKS_CLUSTER_ID: ${{ secrets.DATABRICKS_CLUSTER_ID }}
-        run: |
-          just scorecard-bootstrap-deploy config="config/sources.template.yaml"
