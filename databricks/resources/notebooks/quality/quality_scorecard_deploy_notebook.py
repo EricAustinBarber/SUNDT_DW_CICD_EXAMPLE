@@ -56,9 +56,9 @@ def _replace_json_rows(table_name: str, rows: list[dict]) -> int:
 
 
 files_root = _workspace_files_root()
-scorecard_root = files_root / "scorecard" / "scorecard"
-definitions_root = scorecard_root / "definitions"
-sql_root = scorecard_root / "sql"
+assets_root = files_root / "resources" / "quality_assets"
+definitions_root = assets_root / "definitions"
+sql_root = assets_root / "sql"
 
 metrics_payload = json.loads((definitions_root / "metrics.json").read_text(encoding="utf-8"))
 datasets_payload = json.loads(

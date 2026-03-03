@@ -13,13 +13,13 @@ resources:
         - name: env
           default: ${bundle.target}
         - name: catalog
-          default: "main"
+          default: ${var.quality_catalog}
         - name: schema_raw
-          default: "raw"
+          default: ${var.quality_schema_raw}
         - name: schema_staging
-          default: "staging"
+          default: ${var.quality_schema_staging}
         - name: schema_mart
-          default: "mart"
+          default: ${var.quality_schema_mart}
       tasks:
         - task_key: quality_scorecard_bootstrap
           environment_key: Default
