@@ -16,9 +16,13 @@ from pyspark.sql import functions as F
 
 
 def _workspace_files_root() -> Path:
-    notebook_path = (
-        dbutils.notebook.entry_point.getDbutils().notebook().getContext().notebookPath().get()
-    )
+    notebook_path = dbutils.notebook.entry_point.getDbutils().notebook().getContext().notebookPath().get()
+    # Job context can return /Shared/...; local file access needs /Workspace/...
+    if not notebook_path.startswith("/Workspace/"):
+        if notebook_path.startswith("/"):
+            notebook_path = f"/Workspace{notebook_path}"
+        else:
+            notebook_path = f"/Workspace/{notebook_path}"
     marker = "/files/resources/notebooks/quality/"
     if marker not in notebook_path:
         raise RuntimeError(f"Unable to resolve workspace files root from notebook path: {notebook_path}")
@@ -56,9 +60,19 @@ def _replace_json_rows(table_name: str, rows: list[dict]) -> int:
 
 
 files_root = _workspace_files_root()
-assets_root = files_root / "resources" / "quality_assets"
+assets_candidates = [
+    files_root / "resources" / "quality_assets",
+    Path(str(files_root).replace("/Workspace/", "/", 1)) / "resources" / "quality_assets",
+]
+assets_root = next((p for p in assets_candidates if p.exists()), assets_candidates[0])
 definitions_root = assets_root / "definitions"
 sql_root = assets_root / "sql"
+
+if not definitions_root.exists() or not sql_root.exists():
+    raise FileNotFoundError(
+        "Unable to locate quality assets directory. "
+        f"Tried: {[str(p) for p in assets_candidates]}"
+    )
 
 metrics_payload = json.loads((definitions_root / "metrics.json").read_text(encoding="utf-8"))
 datasets_payload = json.loads(
