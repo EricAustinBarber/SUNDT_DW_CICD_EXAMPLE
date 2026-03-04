@@ -46,6 +46,12 @@ truth for environment deployment:
 This keeps deployment logic inside the bundle contract and avoids runner-local
 or ad hoc deploy steps.
 
+Workflow split:
+
+- PR checks: `.github/workflows/pr-checks.yml`
+- Deployments: `.github/workflows/deploy.yml`
+- Legacy shim: `.github/workflows/ci.yml` (manual only)
+
 For local development only, you can still run:
 
 ```bash
