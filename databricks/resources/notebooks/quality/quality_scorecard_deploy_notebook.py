@@ -1,13 +1,24 @@
 # Databricks notebook source
-dbutils.widgets.text("catalog", "main")
-dbutils.widgets.text("schema_raw", "raw")
-dbutils.widgets.text("schema_staging", "staging")
-dbutils.widgets.text("schema_mart", "mart")
+dbutils.widgets.text("catalog", "")
+dbutils.widgets.text("schema_raw", "")
+dbutils.widgets.text("schema_staging", "")
+dbutils.widgets.text("schema_mart", "")
 
-CATALOG = dbutils.widgets.get("catalog") or "main"
-SCHEMA_RAW = dbutils.widgets.get("schema_raw") or "raw"
-SCHEMA_STAGING = dbutils.widgets.get("schema_staging") or "staging"
-SCHEMA_MART = dbutils.widgets.get("schema_mart") or "mart"
+CATALOG = (dbutils.widgets.get("catalog") or "").strip()
+SCHEMA_RAW = (dbutils.widgets.get("schema_raw") or "").strip()
+SCHEMA_STAGING = (dbutils.widgets.get("schema_staging") or "").strip()
+SCHEMA_MART = (dbutils.widgets.get("schema_mart") or "").strip()
+
+if not CATALOG or not SCHEMA_RAW or not SCHEMA_STAGING or not SCHEMA_MART:
+    raise ValueError(
+        "Missing required catalog/schema parameters. "
+        "Expected catalog, schema_raw, schema_staging, schema_mart."
+    )
+if CATALOG.lower() == "main":
+    raise ValueError(
+        "Refusing to deploy quality scorecard objects to catalog 'main'. "
+        "Set target variable quality_catalog to dev/test/prod catalog."
+    )
 
 import json
 from pathlib import Path
