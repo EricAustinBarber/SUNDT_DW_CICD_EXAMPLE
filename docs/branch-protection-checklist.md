@@ -8,23 +8,33 @@ Use this checklist to enforce safe promotion from `dev` -> `test` -> `prod`.
 - Require pull requests before merge.
 - Require at least 1 approval (`prod` requires 2).
 - Dismiss stale reviews on push.
+- Require branches to be up to date before merging.
 - Block force pushes and branch deletion.
+- Restrict direct pushes to `prod`.
 - Enable secret scanning and push protection.
 
 ## Required status checks
 
 Branch `dev`:
-- `unit-tests`
-- `ci-dev`
+- `PR-Checks / unit-tests`
+- `PR-Checks / bundle-validate-dev`
 
 Branch `test`:
-- `unit-tests`
-- `ci-test`
+- `PR-Checks / unit-tests`
+- `PR-Checks / bundle-validate-test`
 
 Branch `prod`:
-- `unit-tests`
-- `ci-test` (runs for PRs targeting `prod`)
-- Enforce deployment approvals in `DataBricks-Prod` environment for `cd-prod`.
+- `PR-Checks / unit-tests`
+- `PR-Checks / bundle-validate-test` (PRs targeting `prod` validate with test target)
+- Enforce deployment approvals in `DataBricks-Prod` environment for `deploy-prod`.
+
+## Deploy workflow monitoring (recommended)
+
+These are not PR gates, but should be monitored after branch merges:
+
+- `Deploy / deploy-dev`
+- `Deploy / deploy-test`
+- `Deploy / deploy-prod`
 
 ## Environment approvals
 
