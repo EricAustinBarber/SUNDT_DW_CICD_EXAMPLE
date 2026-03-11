@@ -135,6 +135,18 @@ jobs:
             "params": { "env": "dev" }
           },
           {
+            "job_key": "maturity_collect",
+            "params": {
+              "env": "dev",
+              "run_id": "${{ github.run_id }}",
+              "commit_sha": "${{ github.sha }}",
+              "repo": "${{ github.repository }}",
+              "git_ref": "${{ github.ref }}",
+              "workflow_run_id": "${{ github.run_id }}",
+              "bundle_name": "sundt_edm_maturity"
+            }
+          },
+          {
             "job_key": "maturity_scorecard_status_load",
             "params": { "env": "dev", "updated_by": "bundle" }
           },
@@ -183,20 +195,20 @@ jobs:
             }
           },
           {
-            "job_key": "maturity_ci_check",
-            "params": {
-              "env": "test",
-              "enforcement_mode": "warn",
-              "maturity_override": "${{ github.event.inputs.maturity_override || 'none' }}"
-            }
-          },
-          {
             "job_key": "maturity_scorecard_status_load",
             "params": { "env": "test", "updated_by": "bundle" }
           },
           {
             "job_key": "maturity_scorecard_eval",
             "params": { "env": "test", "run_id": "${{ github.run_id }}", "commit_sha": "${{ github.sha }}" }
+          },
+          {
+            "job_key": "maturity_ci_check",
+            "params": {
+              "env": "test",
+              "enforcement_mode": "warn",
+              "maturity_override": "${{ github.event.inputs.maturity_override || 'none' }}"
+            }
           },
           {
             "job_key": "maturity_scorecard_evidence_stub",
@@ -230,6 +242,18 @@ jobs:
           {
             "job_key": "quality_scorecard_deploy",
             "params": { "env": "prod" }
+          },
+          {
+            "job_key": "maturity_collect",
+            "params": {
+              "env": "prod",
+              "run_id": "${{ github.run_id }}",
+              "commit_sha": "${{ github.sha }}",
+              "repo": "${{ github.repository }}",
+              "git_ref": "${{ github.ref }}",
+              "workflow_run_id": "${{ github.run_id }}",
+              "bundle_name": "sundt_edm_maturity"
+            }
           },
           {
             "job_key": "maturity_scorecard_status_load",

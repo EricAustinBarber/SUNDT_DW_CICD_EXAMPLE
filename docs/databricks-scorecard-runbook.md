@@ -1,107 +1,74 @@
-# Databricks Scorecard Runbook
+# Databricks Warehouse Scorecard Runbook
 
 ## Purpose
 
-Run and refresh the Databricks environment scorecard, store results, and keep the baseline current.
+Run and refresh the Databricks warehouse maturity scorecard from Databricks
+telemetry, store results, and use the latest score for review or CI warnings.
 
-This workflow is **non-blocking** and should not gate deployments until approval workflows are finalized.
+## Output Tables
 
-## Inputs
-
-- Scorecard definition: embedded in `databricks/resources/notebooks/maturity/scorecard_evaluation_notebook.py`
-- Assessment evidence: `EnterpriseDataMaturity/assessments/databricks-transformation-review.md`
-- Assessment evidence: `EnterpriseDataMaturity/assessments/assessment-tracker.csv`
-- Assessment evidence: `EnterpriseDataMaturity/assessments/databricks-notebook-inventory.csv`
-- Assessment evidence: `EnterpriseDataMaturity/assessments/databricks-function-inventory.csv`
-
-## Output Tables (Delta)
-
+- `governance_maturity.warehouse_telemetry_metrics`
 - `governance_maturity.scorecard_definition`
 - `governance_maturity.scorecard_check_status`
 - `governance_maturity.scorecard_results`
 - `governance_maturity.scorecard_check_results`
+- `governance_maturity.bundle_deployments`
+
+## Bundle Jobs
+
+- `maturity-collect-<env>`
+- `maturity-scorecard-status-load-<env>`
+- `maturity-scorecard-eval-<env>`
+- `maturity-ci-check-<env>`
 
 ## Execution Steps
 
-1. Update assessment evidence in `EnterpriseDataMaturity/assessments/`.
-2. Update scorecard definition if needed:
-   - Edit the embedded list in `databricks/resources/notebooks/maturity/scorecard_evaluation_notebook.py`.
-   - Keep `docs/databricks-environment-scorecard.md` in sync.
-3. Maintain scorecard status via loader notebook:
-   - Job: `maturity-scorecard-status-load-test`
-   - Baseline statuses are embedded in `scorecard_status_loader_notebook.py`
-4. Run the evaluation job in Databricks (test environment): `maturity-scorecard-eval-test`
-5. Review outputs:
-   - Check `governance_maturity.scorecard_results` for total score, blocked reasons, and run metadata.
-6. Record the snapshot:
-   - Update `docs/databricks-environment-scorecard.md` baseline table and date.
+1. Deploy the bundle for the target environment.
+2. Run `maturity_collect` to capture the latest warehouse telemetry snapshot.
+3. Run `maturity_scorecard_status_load` to convert telemetry into status rows.
+4. Run `maturity_scorecard_eval` to compute weighted scorecard results.
+5. Review `governance_maturity.scorecard_results` and
+   `governance_maturity.scorecard_check_results`.
+6. If used in CI, run `maturity_ci_check` after evaluation.
 
-## Status Conventions
-
-- `Pass` = 1.0
-- `Partial` = 0.5
-- `Fail` = 0.0
-- Any `Fail` in the **Security** dimension blocks readiness.
-
-## Quick SQL: What Is Being Scored
+## Quick SQL
 
 ```sql
--- scorecard checks + weights
-select check_id, dimension, check_name, weight, pass_criteria
-from governance_maturity.scorecard_definition
-order by check_id;
+-- latest telemetry snapshot
+select collected_at, env, check_id, metric_name, metric_value_double, status_hint, notes
+from governance_maturity.warehouse_telemetry_metrics
+where env = 'test'
+order by collected_at desc, check_id;
 
--- latest status used by env
+-- latest derived statuses
 with s as (
   select *,
          row_number() over (partition by check_id order by updated_at desc) rn
   from governance_maturity.scorecard_check_status
-  where env = 'test' or env is null
+  where env = 'test'
 )
 select check_id, status, notes, updated_at, updated_by
 from s
 where rn = 1
 order by check_id;
 
--- most recent result summary
-select collected_at, env, run_id, commit_sha, total_score, overall_status, blocked_reasons, warned_reasons
+-- latest scorecard summary
+select collected_at, env, run_id, total_score, overall_status, blocked_reasons, warned_reasons
 from governance_maturity.scorecard_results
 where env = 'test'
 order by collected_at desc
 limit 20;
 
--- most recent per-check scoring details
+-- latest check-level results
 select collected_at, env, run_id, check_id, dimension, weight, status_norm, score, weighted_score, notes
 from governance_maturity.scorecard_check_results
 where env = 'test'
 order by collected_at desc, check_id;
 ```
 
-## Manual Overrides
+## Notes
 
-Update the embedded baseline list in `scorecard_status_loader_notebook.py` and rerun the loader job.
-
-## CI Integration
-
-CI bundle jobs run after deploy:
-
-- `quality-scorecard-deploy-<env>` (bootstrap + definition/SQL deploy)
-- `maturity-scorecard-status-load-<env>`
-- `maturity-scorecard-eval-<env>`
-
-Quality write location is environment-specific and comes from bundle target
-variables in `databricks/databricks.yml`:
-
-- `quality_catalog`
-- `quality_schema_bronze`
-- `quality_schema_silver`
-- `quality_schema_governance`
-
-Ownership: Data Platform Engineering maintains these values via pull request.
-Production variable changes require release approver sign-off.
-
-## Evidence Stub Notebook
-
-Use `scorecard_evidence_stub_notebook.py` to prototype evidence-derived statuses without enforcing gates. Set `write_mode=append` only when you are ready to persist results.
-
-Job: `maturity-scorecard-evidence-stub-test`
+- The current scorecard is Databricks-only. Bigeye and Alation are no longer in
+  the warehouse maturity scoring path.
+- Metrics degrade to `Unknown` when a system table or column is unavailable in a
+  workspace. That preserves the pipeline and surfaces the missing telemetry.
