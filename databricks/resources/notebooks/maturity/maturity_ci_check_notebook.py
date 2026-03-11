@@ -64,14 +64,14 @@ if override == "warn_only":
 if mode not in ("off", "warn", "block"):
     mode = "warn"
 
-latest = (spark.table("governance_maturity.prod_readiness")
+latest = (spark.table("governance_maturity.scorecard_results")
           .filter(F.col("env")==ENV)
           .orderBy(F.col("collected_at").desc())
           .limit(1))
 
 rows = latest.collect()
 if not rows:
-    raise Exception(f"[maturity] No readiness row found for env={ENV}. Did maturity_collect run?")
+    raise Exception(f"[maturity] No scorecard result found for env={ENV}. Did maturity_collect, status_load, and scorecard_eval run?")
 row = rows[0]
 
 blocked = row["blocked_reasons"] or []
@@ -79,6 +79,7 @@ warned  = row["warned_reasons"] or []
 
 print(f"[maturity] enforcement_mode={mode} override={override} env={ENV}")
 print(f"[maturity] collected_at={row['collected_at']} run_id={row['run_id']} commit_sha={row['commit_sha']}")
+print(f"[maturity] total_score={row['total_score']} overall_status={row['overall_status']}")
 
 print("\nBLOCKS (fail build if mode=block):")
 print("  - none" if not blocked else "\n".join([f"  - {b}" for b in blocked]))

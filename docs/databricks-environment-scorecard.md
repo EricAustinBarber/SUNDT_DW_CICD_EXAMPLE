@@ -1,18 +1,30 @@
-# Databricks Environment Scorecard
+# Databricks Warehouse Maturity Scorecard
 
 ## Purpose
 
-Define the exact Databricks environment scorecard used by this repo. It converts the current assessment evidence into a repeatable, weighted checklist with explicit scoring rules.
+Define the Databricks-only warehouse maturity scorecard used by this repo. The
+scorecard now prioritizes objective telemetry from Databricks system tables and
+warehouse metadata instead of external governance tools.
 
 ## Scope
 
-This scorecard covers the Databricks notebook transformation environment referenced in:
+This scorecard measures maturity and utilization of the Databricks warehouse
+environment itself:
 
-- `C:\Users\eabarber\CodeX\EnterpriseDataMaturity\assessments\databricks-transformation-review.md`
-- `C:\Users\eabarber\CodeX\EnterpriseDataMaturity\assessments\databricks-implementation-summary.md`
-- `C:\Users\eabarber\CodeX\EnterpriseDataMaturity\assessments\databricks-notebook-inventory.csv`
-- `C:\Users\eabarber\CodeX\EnterpriseDataMaturity\assessments\databricks-function-inventory.csv`
-- `C:\Users\eabarber\CodeX\EnterpriseDataMaturity\assessments\assessment-tracker.csv`
+- Warehouse adoption and activity
+- Warehouse query volume and reliability
+- Warehouse performance
+- Warehouse governance coverage for managed and documented assets
+
+## Data Sources
+
+- `system.query.history`
+- `system.information_schema.tables`
+- `governance_maturity.bundle_deployments`
+- `governance_maturity.warehouse_telemetry_metrics`
+
+If a source is unavailable in a workspace, the affected metric is recorded as
+`Unknown` and called out in scorecard notes.
 
 ## Scoring Rules
 
@@ -20,57 +32,37 @@ This scorecard covers the Databricks notebook transformation environment referen
   - `Pass` = 1.0
   - `Partial` = 0.5
   - `Fail` = 0.0
-- Weights emphasize **Security** and **Performance**.
-- Total score = sum of (check score * weight). Maximum = 100.
-- If any **Security** check is `Fail`, overall status is **Not Ready** regardless of total score.
+  - `Unknown` = 0.0
+- Total score = sum of `(check score * weight)`. Maximum = 100.
+- Any `Fail` in `Governance` or `Reliability` blocks readiness.
+- Scores below `75` are warned even when they do not block readiness.
 
-## Scorecard Checks (Exact Definition)
+## Scorecard Checks
 
-| Check ID | Dimension | Check | Evidence Source | Pass Criteria | Weight |
+| Check ID | Dimension | Check | Source | Pass Criteria | Weight |
 |---|---|---|---|---|---:|
-| DBX-01 | Standards | Notebook parameterization by environment and source object | `assessments/databricks-transformation-review.md` | Parameterization is standard across notebooks (widgets or equivalent) with minimal exceptions documented | 6 |
-| DBX-02 | Standards | Delta tables used for curated layers | `assessments/databricks-transformation-review.md` | Curated layers consistently use Delta tables; exceptions documented | 7 |
-| DBX-03 | Standards | Incremental pipelines use deterministic merge/upsert | `assessments/databricks-transformation-review.md` | Merge/upsert patterns are standard for incremental loads with coverage mapped by dataset | 8 |
-| DBX-04 | Standards | Data sanitization rules explicitly coded and tested | `assessments/databricks-transformation-review.md` | Sanitization rules exist per domain and are validated/tested | 7 |
-| DBX-05 | Performance | Table hygiene tasks defined and executed | `assessments/databricks-transformation-review.md` | `OPTIMIZE`/`VACUUM` coverage mapped to all large/critical tables with defined cadence | 12 |
-| DBX-06 | Performance | Partitioning/clustering documented for large tables | `assessments/databricks-transformation-review.md` | Partitioning/clustering standards exist and are applied to all large/critical tables | 10 |
-| DBX-07 | Performance | File-size thresholds and compaction strategy present | `assessments/databricks-transformation-review.md` | Explicit file-size policy and compaction thresholds defined and enforced | 18 |
-| DBX-08 | Reliability | Error handling and retry/idempotency patterns present | `assessments/databricks-transformation-review.md` | Standardized retry/idempotency utilities are used by all production jobs | 7 |
-| DBX-09 | Security | Secrets accessed securely (Key Vault/secret scopes) | `assessments/databricks-transformation-review.md` | All secrets retrieved via secret scopes or Key Vault; no literal credentials | 20 |
-| DBX-10 | Observability | Observability hooks and logging included in jobs | `assessments/databricks-transformation-review.md` | Job-level logging/metrics are standardized and mapped to all production jobs | 5 |
+| WH-01 | Adoption | Warehouse queried on at least ten distinct days in the last 30 days | `system.query.history` | Distinct query days in 30 days `>= 10` | 12 |
+| WH-02 | Adoption | Warehouse used by multiple distinct query users in the last 30 days | `system.query.history` | Distinct users in 30 days `>= 5` | 10 |
+| WH-03 | Utilization | Warehouse handled meaningful successful query volume in the last 30 days | `system.query.history` | Successful queries in 30 days `>= 100` | 10 |
+| WH-04 | Reliability | Warehouse query success rate remains above the reliability threshold | `system.query.history` | Successful query rate in 30 days `>= 95%` | 14 |
+| WH-05 | Performance | Warehouse p95 runtime remains within acceptable bounds | `system.query.history` | P95 total runtime `<= 60 seconds` | 14 |
+| WH-06 | Performance | Warehouse p95 wait-for-compute time remains within acceptable bounds | `system.query.history` | P95 wait for compute `<= 10 seconds` | 12 |
+| WH-07 | Governance | Managed table coverage demonstrates strong warehouse governance | `system.information_schema.tables` | Managed table coverage `>= 95%` | 14 |
+| WH-08 | Governance | Table comment coverage demonstrates documented warehouse assets | `system.information_schema.tables` | Comment coverage `>= 80%` | 14 |
 
-## Baseline Assessment Snapshot (February 22, 2026)
+## Delivery Flow
 
-The baseline statuses below reflect the initial assessment run documented in the assessment workspace.
+1. `maturity_collect` records warehouse telemetry snapshots.
+2. `maturity_scorecard_status_load` converts the latest metric values into
+   `Pass` / `Partial` / `Fail` / `Unknown`.
+3. `maturity_scorecard_eval` calculates weighted results and blocked reasons.
+4. `maturity_ci_check` evaluates the latest scorecard result for deployment
+   warnings or blocks.
 
-| Check ID | Status | Notes |
-|---|---|---|
-| DBX-01 | Pass | Strong evidence via widespread widget usage |
-| DBX-02 | Partial | Delta indicators present; table-level validation pending |
-| DBX-03 | Partial | Merge usage present; coverage by dataset not yet measured |
-| DBX-04 | Partial | Rule inventory per domain not yet captured |
-| DBX-05 | Partial | Optimize/Vacuum present; compliance mapping incomplete |
-| DBX-06 | Partial | Partition usage present; completeness by table unknown |
-| DBX-07 | Fail | No file-size threshold policy evidence captured |
-| DBX-08 | Partial | Patterns exist in utilities; job-level coverage pending |
-| DBX-09 | Partial | Secure retrieval present; potential literals need triage |
-| DBX-10 | Partial | Needs per-job mapping to logging/metrics standard |
+## Near-Term Extensions
 
-## Remediation Items That Affect Score
-
-Tracked in `C:\Users\eabarber\CodeX\EnterpriseDataMaturity\assessments\assessment-tracker.csv`:
-
-- `DBX-R01` (H): Validate/remediate credential literal findings (impacts DBX-09).
-- `DBX-R02` (H): Define/enforce Delta file-size compaction policy (impacts DBX-07).
-- `DBX-R03` (M): Build dataset-level compliance matrix (impacts DBX-02, DBX-03, DBX-05, DBX-06).
-
-## Execution Cadence
-
-- Update the scorecard after each remediation sprint or quarterly at minimum.
-- Evidence refresh should include updated notebook inventory and targeted manual reviews for the `Partial` checks.
-
-## Canonical Definition
-
-The canonical scorecard definition is embedded in
-`databricks/resources/notebooks/maturity/scorecard_evaluation_notebook.py`.
-Keep this document aligned with the embedded list.
+- Add cost and efficiency metrics from `system.billing.usage`.
+- Add queue saturation and startup behavior metrics from
+  `system.compute.warehouse_events`.
+- Add table ownership and tagging coverage from Unity Catalog metadata.
+- Add trends and burn-down views for each scorecard dimension.
