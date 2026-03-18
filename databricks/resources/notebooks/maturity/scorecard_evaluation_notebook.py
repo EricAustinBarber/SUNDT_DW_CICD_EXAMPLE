@@ -82,67 +82,363 @@ PARTITIONED BY (env)
 embedded_definitions = [
     {
         "check_id": "WH-01",
-        "dimension": "Adoption",
-        "check_name": "Warehouse queried on at least ten distinct days in the last 30 days",
-        "weight": 12,
-        "pass_criteria": "Distinct query days in 30 days >= 10",
-        "evidence_source": "system.query.history",
+        "dimension": "Platform Feature Utilization",
+        "check_name": "Curated warehouse tables are primarily stored in Delta format",
+        "weight": 5,
+        "pass_criteria": "Delta curated table coverage >= 90%",
+        "evidence_source": "system.information_schema.tables + DESCRIBE DETAIL",
     },
     {
         "check_id": "WH-02",
-        "dimension": "Adoption",
-        "check_name": "Warehouse used by multiple distinct query users in the last 30 days",
-        "weight": 10,
-        "pass_criteria": "Distinct users in 30 days >= 5",
+        "dimension": "Platform Feature Utilization",
+        "check_name": "Observed warehouse write workloads favor MERGE over rebuild-only logic",
+        "weight": 6,
+        "pass_criteria": "MERGE load ratio >= 60%",
         "evidence_source": "system.query.history",
     },
     {
         "check_id": "WH-03",
-        "dimension": "Utilization",
-        "check_name": "Warehouse handled meaningful successful query volume in the last 30 days",
-        "weight": 10,
-        "pass_criteria": "Successful queries in 30 days >= 100",
-        "evidence_source": "system.query.history",
+        "dimension": "Platform Feature Utilization",
+        "check_name": "Large tables use a layout strategy such as partitioning",
+        "weight": 5,
+        "pass_criteria": "Large table layout strategy coverage >= 80%",
+        "evidence_source": "system.information_schema.tables + DESCRIBE DETAIL",
     },
     {
         "check_id": "WH-04",
-        "dimension": "Reliability",
-        "check_name": "Warehouse query success rate remains above the reliability threshold",
-        "weight": 14,
-        "pass_criteria": "Successful query rate in 30 days >= 95%",
-        "evidence_source": "system.query.history",
+        "dimension": "Performance and Efficiency",
+        "check_name": "Only a small number of large tables show small-file issues",
+        "weight": 5,
+        "pass_criteria": "Small-file problem tables <= 3",
+        "evidence_source": "DESCRIBE DETAIL",
     },
     {
         "check_id": "WH-05",
-        "dimension": "Performance",
-        "check_name": "Warehouse p95 runtime remains within acceptable bounds",
-        "weight": 14,
-        "pass_criteria": "P95 total runtime <= 60 seconds",
-        "evidence_source": "system.query.history",
+        "dimension": "Performance and Efficiency",
+        "check_name": "Only a limited number of tables show oversized file patterns",
+        "weight": 3,
+        "pass_criteria": "Oversized-file problem tables <= 1",
+        "evidence_source": "DESCRIBE DETAIL",
     },
     {
         "check_id": "WH-06",
-        "dimension": "Performance",
-        "check_name": "Warehouse p95 wait-for-compute time remains within acceptable bounds",
-        "weight": 12,
-        "pass_criteria": "P95 wait for compute <= 10 seconds",
-        "evidence_source": "system.query.history",
+        "dimension": "Platform Feature Utilization",
+        "check_name": "Large Delta tables show recent OPTIMIZE usage",
+        "weight": 5,
+        "pass_criteria": "Large table OPTIMIZE coverage >= 70%",
+        "evidence_source": "DESCRIBE HISTORY",
     },
     {
         "check_id": "WH-07",
-        "dimension": "Governance",
-        "check_name": "Managed table coverage demonstrates strong warehouse governance",
-        "weight": 14,
-        "pass_criteria": "Managed table coverage >= 95%",
-        "evidence_source": "system.information_schema.tables",
+        "dimension": "Performance and Efficiency",
+        "check_name": "Large join workloads remain limited",
+        "weight": 5,
+        "pass_criteria": "Large join query count <= 25",
+        "evidence_source": "system.query.history",
     },
     {
         "check_id": "WH-08",
-        "dimension": "Governance",
-        "check_name": "Table comment coverage demonstrates documented warehouse assets",
-        "weight": 14,
-        "pass_criteria": "Comment coverage >= 80%",
-        "evidence_source": "system.information_schema.tables",
+        "dimension": "Platform Feature Utilization",
+        "check_name": "Broadcast join hints are used where appropriate",
+        "weight": 3,
+        "pass_criteria": "Broadcast join hint count >= 10",
+        "evidence_source": "system.query.history",
+    },
+    {
+        "check_id": "WH-09",
+        "dimension": "Platform Feature Utilization",
+        "check_name": "Observed write workloads are primarily incremental",
+        "weight": 6,
+        "pass_criteria": "Incremental load coverage >= 70%",
+        "evidence_source": "system.query.history",
+    },
+    {
+        "check_id": "WH-10",
+        "dimension": "Platform Feature Utilization",
+        "check_name": "Observed ingestion workloads use auto-trigger or streaming patterns",
+        "weight": 5,
+        "pass_criteria": "Auto-trigger or streaming load coverage >= 40%",
+        "evidence_source": "system.query.history",
+    },
+    {
+        "check_id": "WH-11",
+        "dimension": "Performance and Efficiency",
+        "check_name": "Critical pipeline p95 runtime remains within the target window",
+        "weight": 5,
+        "pass_criteria": "P95 pipeline runtime <= 900 seconds",
+        "evidence_source": "system.lakeflow.job_run_timeline",
+    },
+    {
+        "check_id": "WH-12",
+        "dimension": "Operational Reliability",
+        "check_name": "Observed pipeline success rate remains above the reliability threshold",
+        "weight": 5,
+        "pass_criteria": "Pipeline success rate >= 95%",
+        "evidence_source": "system.lakeflow.job_run_timeline",
+    },
+    {
+        "check_id": "WH-13",
+        "dimension": "Operational Reliability",
+        "check_name": "Pipeline retry rate remains below the reliability threshold",
+        "weight": 1,
+        "pass_criteria": "Pipeline retry rate <= 5%",
+        "evidence_source": "system.lakeflow.job_run_timeline",
+    },
+    {
+        "check_id": "WH-14",
+        "dimension": "Operational Reliability",
+        "check_name": "Pipeline failure rate remains below the reliability threshold",
+        "weight": 1,
+        "pass_criteria": "Pipeline failure rate <= 5%",
+        "evidence_source": "system.lakeflow.job_run_timeline",
+    },
+    {
+        "check_id": "WH-15",
+        "dimension": "Operational Reliability",
+        "check_name": "Average recovery time after failure remains within the target window",
+        "weight": 1,
+        "pass_criteria": "Average recovery time <= 60 minutes",
+        "evidence_source": "system.lakeflow.job_run_timeline",
+    },
+    {
+        "check_id": "WH-16",
+        "dimension": "Operational Reliability",
+        "check_name": "Interrupted pipeline runs remain limited",
+        "weight": 1,
+        "pass_criteria": "Interrupted run count <= 5",
+        "evidence_source": "system.lakeflow.job_run_timeline",
+    },
+    {
+        "check_id": "WH-17",
+        "dimension": "Operational Reliability",
+        "check_name": "Manual rerun count remains limited",
+        "weight": 1,
+        "pass_criteria": "Manual rerun count <= 10",
+        "evidence_source": "system.lakeflow.job_run_timeline",
+    },
+    {
+        "check_id": "WH-18",
+        "dimension": "Performance and Efficiency",
+        "check_name": "Shuffle join query count remains limited",
+        "weight": 1,
+        "pass_criteria": "Shuffle join query count <= 50",
+        "evidence_source": "system.query.history",
+    },
+    {
+        "check_id": "WH-19",
+        "dimension": "Performance and Efficiency",
+        "check_name": "Skewed join query count remains limited",
+        "weight": 1,
+        "pass_criteria": "Skewed join query count <= 5",
+        "evidence_source": "system.query.history",
+    },
+    {
+        "check_id": "WH-20",
+        "dimension": "Performance and Efficiency",
+        "check_name": "Cartesian join query count remains limited",
+        "weight": 1,
+        "pass_criteria": "Cartesian join query count <= 1",
+        "evidence_source": "system.query.history",
+    },
+    {
+        "check_id": "WH-21",
+        "dimension": "Performance and Efficiency",
+        "check_name": "Very large scan query count remains limited",
+        "weight": 1,
+        "pass_criteria": "Very large scan query count <= 10",
+        "evidence_source": "system.query.history",
+    },
+    {
+        "check_id": "WH-22",
+        "dimension": "Performance and Efficiency",
+        "check_name": "Average large-table file size remains healthy",
+        "weight": 1,
+        "pass_criteria": "Average large-table file size >= 128 MB",
+        "evidence_source": "DESCRIBE DETAIL",
+    },
+    {
+        "check_id": "WH-23",
+        "dimension": "Performance and Efficiency",
+        "check_name": "Large-table file count growth remains controlled",
+        "weight": 1,
+        "pass_criteria": "Large-table file count growth <= 20%",
+        "evidence_source": "DESCRIBE DETAIL + telemetry history",
+    },
+    {
+        "check_id": "WH-24",
+        "dimension": "Performance and Efficiency",
+        "check_name": "Compaction candidate table count remains limited",
+        "weight": 1,
+        "pass_criteria": "Compaction candidate tables <= 5",
+        "evidence_source": "DESCRIBE DETAIL",
+    },
+    {
+        "check_id": "CC-01",
+        "dimension": "Cost Control",
+        "check_name": "Full reload workload ratio remains below the cost threshold",
+        "weight": 2,
+        "pass_criteria": "Full reload workload ratio <= 20%",
+        "evidence_source": "system.query.history",
+    },
+    {
+        "check_id": "CC-02",
+        "dimension": "Cost Control",
+        "check_name": "Full reload workload count remains below the cost threshold",
+        "weight": 2,
+        "pass_criteria": "Full reload workload count <= 25",
+        "evidence_source": "system.query.history",
+    },
+    {
+        "check_id": "CC-03",
+        "dimension": "Cost Control",
+        "check_name": "SELECT * query count remains below the cost threshold",
+        "weight": 2,
+        "pass_criteria": "SELECT * query count <= 50",
+        "evidence_source": "system.query.history",
+    },
+    {
+        "check_id": "CC-04",
+        "dimension": "Cost Control",
+        "check_name": "Long-running query count remains below the cost threshold",
+        "weight": 2,
+        "pass_criteria": "Long-running query count <= 50",
+        "evidence_source": "system.query.history",
+    },
+    {
+        "check_id": "CC-05",
+        "dimension": "Cost Control",
+        "check_name": "Large table layout strategy coverage remains above the cost threshold",
+        "weight": 2,
+        "pass_criteria": "Large table layout strategy coverage >= 80%",
+        "evidence_source": "DESCRIBE DETAIL",
+    },
+    {
+        "check_id": "CC-06",
+        "dimension": "Cost Control",
+        "check_name": "Small-file problem table count remains below the cost threshold",
+        "weight": 2,
+        "pass_criteria": "Small-file problem tables <= 3",
+        "evidence_source": "DESCRIBE DETAIL",
+    },
+    {
+        "check_id": "CC-07",
+        "dimension": "Cost Control",
+        "check_name": "Oversized file problem table count remains below the cost threshold",
+        "weight": 2,
+        "pass_criteria": "Oversized file problem tables <= 1",
+        "evidence_source": "DESCRIBE DETAIL",
+    },
+    {
+        "check_id": "CC-08",
+        "dimension": "Cost Control",
+        "check_name": "Large join query count remains below the cost threshold",
+        "weight": 2,
+        "pass_criteria": "Large join query count <= 25",
+        "evidence_source": "system.query.history",
+    },
+    {
+        "check_id": "CC-09",
+        "dimension": "Cost Control",
+        "check_name": "Pipeline p95 runtime remains within the cost target",
+        "weight": 2,
+        "pass_criteria": "P95 pipeline runtime <= 900 seconds",
+        "evidence_source": "system.lakeflow.job_run_timeline",
+    },
+    {
+        "check_id": "CC-10",
+        "dimension": "Cost Control",
+        "check_name": "Large table count remains below the cost threshold",
+        "weight": 1,
+        "pass_criteria": "Large table count <= 200",
+        "evidence_source": "DESCRIBE DETAIL",
+    },
+    {
+        "check_id": "CC-11",
+        "dimension": "Cost Control",
+        "check_name": "Non-Delta table count remains below the cost threshold",
+        "weight": 1,
+        "pass_criteria": "Non-Delta table count <= 10",
+        "evidence_source": "DESCRIBE DETAIL",
+    },
+    {
+        "check_id": "CC-12",
+        "dimension": "Cost Control",
+        "check_name": "Large tables without partitioning remain below the cost threshold",
+        "weight": 1,
+        "pass_criteria": "Large tables without partitioning <= 20",
+        "evidence_source": "DESCRIBE DETAIL",
+    },
+    {
+        "check_id": "CC-13",
+        "dimension": "Cost Control",
+        "check_name": "Large Delta tables missing OPTIMIZE remain below the cost threshold",
+        "weight": 1,
+        "pass_criteria": "Large tables missing OPTIMIZE <= 20",
+        "evidence_source": "DESCRIBE HISTORY",
+    },
+    {
+        "check_id": "CC-14",
+        "dimension": "Cost Control",
+        "check_name": "P95 query runtime remains within the cost threshold",
+        "weight": 1,
+        "pass_criteria": "P95 query runtime <= 60 seconds",
+        "evidence_source": "system.query.history",
+    },
+    {
+        "check_id": "CC-15",
+        "dimension": "Cost Control",
+        "check_name": "High scan byte query count remains below the cost threshold",
+        "weight": 1,
+        "pass_criteria": "High scan byte query count <= 50",
+        "evidence_source": "system.query.history",
+    },
+    {
+        "check_id": "CC-16",
+        "dimension": "Cost Control",
+        "check_name": "High scan-to-output ratio query count remains below the cost threshold",
+        "weight": 1,
+        "pass_criteria": "High scan-to-output ratio query count <= 30",
+        "evidence_source": "system.query.history",
+    },
+    {
+        "check_id": "CC-17",
+        "dimension": "Cost Control",
+        "check_name": "Spill-to-disk query count remains below the cost threshold",
+        "weight": 1,
+        "pass_criteria": "Spill-to-disk query count <= 10",
+        "evidence_source": "system.query.history",
+    },
+    {
+        "check_id": "CC-18",
+        "dimension": "Cost Control",
+        "check_name": "High shuffle byte query count remains below the cost threshold",
+        "weight": 1,
+        "pass_criteria": "High shuffle byte query count <= 10",
+        "evidence_source": "system.query.history",
+    },
+    {
+        "check_id": "CC-19",
+        "dimension": "Cost Control",
+        "check_name": "SELECT * query ratio remains below the cost threshold",
+        "weight": 1,
+        "pass_criteria": "SELECT * query ratio <= 5%",
+        "evidence_source": "system.query.history",
+    },
+    {
+        "check_id": "CC-20",
+        "dimension": "Cost Control",
+        "check_name": "Broadcast join ratio remains above the cost threshold",
+        "weight": 1,
+        "pass_criteria": "Broadcast join ratio >= 10%",
+        "evidence_source": "system.query.history",
+    },
+    {
+        "check_id": "CC-21",
+        "dimension": "Cost Control",
+        "check_name": "Write workload count baseline is available",
+        "weight": 1,
+        "pass_criteria": "Write workload count observed in last 30 days",
+        "evidence_source": "system.query.history",
     },
 ]
 
@@ -264,13 +560,18 @@ def status_score(col):
 scored = (
     joined.withColumn("score", status_score("status_norm"))
     .withColumn("weighted_score", F.col("score") * F.col("weight"))
+    .withColumn(
+        "available_weight",
+        F.when(F.col("status_norm") == "Unknown", F.lit(0.0)).otherwise(F.col("weight").cast("double")),
+    )
 )
 
 print("[scorecard] dimension summary:")
 (
     scored.groupBy("dimension")
     .agg(
-        F.sum("weighted_score").alias("dimension_score"),
+        F.sum("weighted_score").alias("dimension_weighted_score"),
+        F.sum("available_weight").alias("dimension_available_weight"),
         F.sum("weight").alias("dimension_weight"),
         F.sum(F.when(F.col("status_norm") == "Pass", F.lit(1)).otherwise(F.lit(0))).alias("pass_count"),
         F.sum(F.when(F.col("status_norm") == "Partial", F.lit(1)).otherwise(F.lit(0))).alias("partial_count"),
@@ -281,21 +582,28 @@ print("[scorecard] dimension summary:")
     .show(50, False)
 )
 
-total_score = scored.agg(F.sum("weighted_score").alias("total")).collect()[0]["total"] or 0.0
+score_totals = scored.agg(
+    F.sum("weighted_score").alias("weighted_total"),
+    F.sum("available_weight").alias("available_weight_total"),
+).collect()[0]
+weighted_total = score_totals["weighted_total"] or 0.0
+available_weight_total = score_totals["available_weight_total"] or 0.0
+total_score = 0.0 if float(available_weight_total) <= 0.0 else 100.0 * float(weighted_total) / float(available_weight_total)
 
-governance_fail = scored.filter((F.col("dimension") == "Governance") & (F.col("status_norm") == "Fail")).count() > 0
-reliability_fail = scored.filter((F.col("dimension") == "Reliability") & (F.col("status_norm") == "Fail")).count() > 0
+reliability_fail = scored.filter((F.col("dimension") == "Operational Reliability") & (F.col("status_norm") == "Fail")).count() > 0
 
 blocked = []
 warned = []
-if governance_fail:
-    blocked.append("Governance metric failed")
 if reliability_fail:
-    blocked.append("Reliability metric failed")
+    blocked.append("Operational reliability metric failed")
 
 unknown_count = scored.filter(F.col("status_norm") == "Unknown").count()
 if unknown_count > 0:
     warned.append(f"{unknown_count} checks missing telemetry")
+if float(available_weight_total) < 100.0:
+    warned.append(f"Score normalized over {round(float(available_weight_total), 1)} observed weight")
+if float(available_weight_total) <= 0.0:
+    warned.append("No observed warehouse telemetry metrics were available for scoring")
 if total_score < 75.0:
     warned.append(f"Total score below target: {round(float(total_score), 2)}")
 
@@ -319,6 +627,8 @@ details_json = (
                 F.collect_list("check").alias("checks"),
                 F.lit(SCORECARD_SOURCE).alias("scorecard_source"),
                 F.lit(SCORECARD_PATH).alias("scorecard_path"),
+                F.lit(float(available_weight_total)).alias("available_weight_total"),
+                F.lit(float(weighted_total)).alias("weighted_total"),
             )
         ).alias("details_json")
     )
